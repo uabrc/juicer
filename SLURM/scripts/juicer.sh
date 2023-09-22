@@ -67,10 +67,21 @@ shopt -s extglob
 juicer_version="2.0"
 ## Set the following variables to work with your system
 
+
+
 # Aiden Lab specific check
 isRice=$(host $(hostname) | awk 'NR==1{if ($1~/rice/) {print 1} else {print 0}; exit}') #'
 isBCM=$(host $(hostname) | awk 'NR==1{if ($1~/bcm/) {print 1} else {print 0}; exit}') #'
 isVoltron=0
+
+# ENSURE CHEAHA USAGE, NULLIFIES PREVIOUS BLOCK
+isRice=0
+isBCM=0
+isVoltron=0
+isCheaha=1
+
+
+
 ## path additionals, make sure paths are correct for your system
 ## use cluster load commands
 if [ $isRice -eq 1 ] 
@@ -112,6 +123,25 @@ then
     # default long queue, can also be set in options via -l
     long_queue="mhgcp"
     long_queue_time="3600"
+elif [ $isCheaha -eq 1 ]
+then
+    # SEE `env.yml` FOR `juicer` ENVIRONMENT DEFINITION
+    load_bwa="module load Anaconda3; conda activate juicer"
+    load_awk="module load Anaconda3; conda activate juicer"
+    load_java="module load Anaconda3; conda activate juicer"
+    load_samtools="module load Anaconda3; conda activate juicer"
+    load_gpu="module load CUDA/11.6.0"
+    queue="medium"
+    queue_time="24:00:00"
+    long_queue="long"
+    long_queue_time="96:00:00"
+
+
+    # FOR METHYLATION ONLY, NOT NEEDED AT THIS TIME
+    # call_bwameth=""
+
+    # RELEVANT FOR SOME EXPERIMENTS USING REFERENCES AND RESTRICTION SITES
+    # juiceDir=""
 else
     isVoltron=1
     #export PATH=/gpfs0/biobuild/biobuilds-2016.11/bin:$PATH 
