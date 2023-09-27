@@ -984,7 +984,7 @@ MRGALL3`
 #SBATCH -p $long_queue
 #SBATCH -o $debugdir/mergesort-%j.out
 #SBATCH -e $debugdir/mergesort-%j.err
-#SBATCH --mem-per-cpu=2G
+#SBATCH --mem-per-cpu=3G
 #SBATCH -t $long_queue_time
 #SBATCH -c $sortthreads
 #SBATCH --ntasks=1
@@ -994,7 +994,7 @@ MRGALL3`
 $userstring
 ${load_samtools}
 #we should probably set the -m based on memory / num of threads
-if time samtools sort -t cb -n -O SAM -@ $sortthreads -l 0 -m 2G $name$ext.sam3 >  ${name}${ext}.sam
+if time samtools sort -t cb -n -O SAM -@ $sortthreads -l 0 -m 3G $name$ext.sam3 >  ${name}${ext}.sam
 then
    rm -f $name$ext.sam2 $name$ext.sam3
    touch $touchfile
