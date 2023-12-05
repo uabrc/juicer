@@ -994,7 +994,9 @@ MRGALL3`
 $userstring
 ${load_samtools}
 #we should probably set the -m based on memory / num of threads
-if time samtools sort -t cb -n -O SAM -@ $sortthreads -l 0 -m 3G $name$ext.sam3 >  ${name}${ext}.sam
+# WW: this failed again, it's not at all clear how memory depends on input, but a flat value doesn't seem to cut it.
+# We may need to do a sensitivity study.
+if time samtools sort -t cb -n -O SAM -@ $sortthreads -l 0 -m 80G $name$ext.sam3 >  ${name}${ext}.sam
 then
    rm -f $name$ext.sam2 $name$ext.sam3
    touch $touchfile
@@ -1094,6 +1096,7 @@ then
 			mv $donesplitdir/* $splitdir/.
 		fi
 
+        ${load_samtools}
 		if ! samtools merge -c -t cb -n $sthreadstring -O SAM $outputdir/merged_sort.sam  $splitdir/*.sam
 		then
 			echo "***! Some problems occurred somewhere in creating sorted align files."
