@@ -91,6 +91,9 @@ isBCM=0
 isVoltron=0
 isCheaha=1
 
+# defaults for set -u
+isNots=""
+
 
 
 ## path additionals, make sure paths are correct for your system
@@ -284,6 +287,18 @@ printHelpAndExit() {
 	echo "$helpHelp"
 	exit "$1"
 }
+
+# defaults for set -u
+genomeID=""
+site_file=""
+stage=""
+splitme=""
+user=""
+earlyexit=""
+threadsHic=""
+methylation=""
+qc=""
+insitu=""
 
 while getopts "d:g:a:hq:s:p:l:y:z:S:C:D:Q:L:b:A:i:t:jfuec-:T:w:k:m" opt; do
 	case $opt in
@@ -567,6 +582,7 @@ then
 fi
 
 ## Create split directory
+splitdirexists=""
 if [ -d "$splitdir" ]; then
 	splitdirexists=1
 elif  [[ -n "$chimeric" ]]; then
@@ -783,6 +799,7 @@ SPLITEND`
 			read1=${splitdir}"/*${read1str}*.fastq"
 		fi
 		fi
+		dependsplitstring=""
 	fi
 
 	# await for all split jobs to finish
