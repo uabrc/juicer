@@ -968,6 +968,7 @@ CNTLINE`
 				#SBATCH -J "${groupname}_merge_${jname}"
 					#SBATCH --threads-per-core=1
 					$userstring
+				$debugString
 				${load_awk}
 
 				date
@@ -996,6 +997,7 @@ MRGALL`
 					#SBATCH -J "${groupname}_merge_${jname}"
 						#SBATCH --threads-per-core=1
 						$userstring
+				$debugString
 					${load_awk}
 					#time awk -v maxcount=1000000 -f $juiceDir/scripts/calculate_insert_size.awk $name$ext.sam > $name$ext.insert_size
 					#will need to combine chimeric_sam and adjust_insert_size
@@ -1037,6 +1039,7 @@ MRGALL1`
 					#SBATCH -J "${groupname}_merge_${jname}"
 						#SBATCH --threads-per-core=1
 						$userstring
+					$debugString
 					${load_awk}
 
 				time awk -v avgInsertFile=${name}${ext}_norm.txt.res.txt -f $juiceDir/scripts/adjust_insert_size.awk $name$ext.sam2 > $name$ext.sam3
@@ -1345,7 +1348,6 @@ DUPCHECK`
 		#SBATCH --ntasks=1
 		#SBATCH --mem-per-cpu=10G
 		$debugString
-		$userstring
 		${load_samtools}
 
 		samtools view -F 1024 -O sam $sthreadstring ${outputdir}/merged_dedup.sam | awk -v mapq=1 -f ${juiceDir}/scripts/sam_to_pre.awk > ${outputdir}/merged1.txt
@@ -1690,6 +1692,7 @@ then
 			#SBATCH --ntasks=1
 			#SBATCH -J "${groupname}_hiccups_wrap"
 			${hic1_and_hic30_wait_depend_sbatch_flag}
+			$debugString
 				$userstring
 
 			${load_gpu}
