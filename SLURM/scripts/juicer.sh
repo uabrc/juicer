@@ -145,17 +145,21 @@ then
 	load_java="module load Anaconda3; conda activate juicer"
 	load_samtools="module load Anaconda3; conda activate juicer"
 	load_gpu="module load CUDA/11.6.0"
-	queue="medium"
+	queue="amd-hdr100"
 	queue_time="24:00:00"
-	long_queue="long"
+	long_queue="amd-hdr100"
 	long_queue_time="96:00:00"
+	mem_per_cpu=24000
+	threads=8
+	sortthreads=6
 
 
 	# FOR METHYLATION ONLY, NOT NEEDED AT THIS TIME
-	# call_bwameth=""
+	# empty for set -u
+	call_bwameth=""
 
 	# RELEVANT FOR SOME EXPERIMENTS USING REFERENCES AND RESTRICTION SITES
-	# juiceDir=""
+	juiceDir="# N/A, this is irrelevant"
 else
 	isVoltron=1
 	#export PATH=/gpfs0/biobuild/biobuilds-2016.11/bin:$PATH
