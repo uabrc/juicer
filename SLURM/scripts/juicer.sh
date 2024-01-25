@@ -733,10 +733,26 @@ SPLITEND`
 				read1=${splitdir}"/*${read1str}*.fastq"
 			done
 
-			srun -c 1 -p "$queue" -t 1 -o $debugdir/wait-%j.out -e $debugdir/wait-%j.err -d $dependsplit -J "${groupname}_wait" sleep 1
+			# srun -c 1 -p "$queue" -t 1 -o $debugdir/%j-wait.out -e $debugdir/%j-wait.err -d $dependsplit -J "${groupname}_wait" /usr/bin/sleep 1
+			# wait
 		else
-			cp -rs ${fastqdir} ${splitdir}
-			wait
+			echo "SUBMITTING SPLIT"
+			jid=`sbatch <<- SPLITEND | egrep -o -e "\b[0-9]+$"
+				#!/bin/bash -l
+				#SBATCH -p $queue
+				#SBATCH -t $queue_time
+				#SBATCH -c 1
+				#SBATCH --mem=5G
+				#SBATCH -o $debugdir/%j-split.out
+				#SBATCH -e $debugdir/%j-split.err
+				#SBATCH -J "${groupname}_split_${i}"
+					$userstring
+				$debugString
+				date
+				cp -rs ${fastqdir} ${splitdir}
+				date
+SPLITEND`
+			dependsplitstring="$dependsplitstring:$jid"
 		fi
 	else
 		## No need to re-split fastqs if they already exist
@@ -754,6 +770,31 @@ SPLITEND`
 		fi
 		fi
 	fi
+
+	# await for all split jobs to finish
+	# split files do not exist yet
+	# must wait on jobs to create them before proceeding
+	# with additional job submissions
+	echo "SUBMITTING SPLITWAIT"
+	jid=`sbatch <<- SPLITWAIT | egrep -o -e "\b[0-9]+$"
+		#!/bin/bash -l
+		#SBATCH --wait
+		#SBATCH -p $queue
+		#SBATCH -t 1
+		#SBATCH -c 1
+		#SBATCH --mem=1G
+		#SBATCH -o $debugdir/%j-wait.out
+		#SBATCH -e $debugdir/%j-wait.err
+		$dependsplitstring
+		#SBATCH -J "${groupname}_split_wait"
+					$userstring
+		$debugString
+		date
+		/usr/bin/sleep 1
+		date
+SPLITWAIT`
+	dependwait="afterok:$jid"
+	wait
 
 	## Launch job. Once split/move is done, set the parameters for the launch.
 	echo "(-: Starting job to launch other jobs once splitting is complete"
@@ -1022,6 +1063,32 @@ MRGALL3`
 		TOUCH[countjobs]="$touchfile"
 		countjobs=$(( $countjobs + 1 ))
 	done # done looping over all fastq split files
+
+	# await for all split jobs to finish
+	# split files do not exist yet
+	# must wait on jobs to create them before proceeding
+	# with additional job submissions
+	dependmergestring="#SBATCH -d $dependmergesort"
+	echo "SUBMITTING MERGESORTWAIT"
+	jid=`sbatch <<- MERGESORTWAIT | egrep -o -e "\b[0-9]+$"
+		#!/bin/bash -l
+		#SBATCH --wait
+		#SBATCH -p $queue
+		#SBATCH -t 1
+		#SBATCH -c 1
+		#SBATCH --mem=1G
+		#SBATCH -o $debugdir/%j-wait.out
+		#SBATCH -e $debugdir/%j-wait.err
+		$dependmergestring
+		#SBATCH -J "${groupname}_mergesort_wait"
+				$userstring
+		$debugString
+		date
+		/usr/bin/sleep 1
+		date
+MERGESORTWAIT`
+	dependwait="afterok:$jid"
+	wait
 
 	# list of all jobs. print errors if failed
 	for (( i=0; i < $countjobs; i++ ))
