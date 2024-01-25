@@ -1061,6 +1061,7 @@ MRGALL1`
 					#SBATCH -J "${groupname}_merge_${jname}"
 						#SBATCH --threads-per-core=1
 						$userstring
+					$debugString
 					${load_awk}
 					#time awk -v maxcount=1000000 -f $juiceDir/scripts/calculate_insert_size.awk $name$ext.sam > $name$ext.insert_size
 					#will need to combine chimeric_sam and adjust_insert_size
