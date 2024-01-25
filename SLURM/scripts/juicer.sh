@@ -347,6 +347,15 @@ while getopts "d:g:a:hq:s:p:l:y:z:S:C:D:Q:L:b:A:i:t:jfuec-:T:w:k:m" opt; do
 	esac
 done
 
+# defaults for set -u
+chimeric=""
+merge=""
+dedup=""
+afterdedup=""
+early=""
+final=""
+postproc=""
+
 if [ ! -z "$stage" ]
 then
 	case $stage in
