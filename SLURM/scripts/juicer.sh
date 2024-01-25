@@ -630,6 +630,7 @@ then
 else
 	queuestring="#SBATCH -p $queue"
 fi
+echo "SUBMITTING HEAD"
 jid=`sbatch <<- HEADER | egrep -o -e "\b[0-9]+$"
 	#!/bin/bash -l
 		$userstring
@@ -706,6 +707,7 @@ then
 				filename=${filename%.*}
 				if [ -z "$gzipped" ]
 				then
+					echo "SUBMITTING SPLIT_STANDARD"
 					jid=`sbatch <<- SPLITEND | egrep -o -e "\b[0-9]+$"
 						#!/bin/bash -l
 									#SBATCH -p $queue
@@ -722,6 +724,7 @@ then
 						date
 SPLITEND`
 				else
+					echo "SUBMITTING SPLIT_ZCAT"
 					jid=`sbatch <<- SPLITEND | egrep -o -e "\b[0-9]+$"
 						#!/bin/bash -l
 						#SBATCH -p $queue
@@ -747,7 +750,7 @@ SPLITEND`
 			# srun -c 1 -p "$queue" -t 1 -o $debugdir/%j-wait.out -e $debugdir/%j-wait.err -d $dependsplit -J "${groupname}_wait" /usr/bin/sleep 1
 			# wait
 		else
-			echo "SUBMITTING SPLIT"
+			echo "SUBMITTING SPLIT_COPY"
 			jid=`sbatch <<- SPLITEND | egrep -o -e "\b[0-9]+$"
 				#!/bin/bash -l
 				#SBATCH -p $queue
@@ -848,6 +851,7 @@ SPLITWAIT`
 			fi
 
 			# count ligations
+			echo "SUBMITTING COUNT_LIGATION"
 			jid=`sbatch <<- CNTLIG |  egrep -o -e "\b[0-9]+$"
 				#!/bin/bash -l
 				#SBATCH -p $queue
@@ -867,6 +871,7 @@ CNTLIG`
 			dependcount="$jid"
 
 			# align fastqs
+			echo "SUBMITTING ALIGN1"
 			jid=`sbatch <<- ALGNR1 | egrep -o -e "\b[0-9]+$"
 				#!/bin/bash -l
 				$queuestring
@@ -929,6 +934,7 @@ ALGNR1`
 		else
 			name=${i%.sam}
 			ext=""
+			echo "SUBMITTING COUNT_LINE"
 			jid=`sbatch <<- CNTLINE |  egrep -o -e "\b[0-9]+$"
 				#!/bin/bash -l
 				#SBATCH -p $queue
@@ -955,6 +961,7 @@ CNTLINE`
 		# wait for alignment, chimeric read handling
 		if [ "$site" != "none" ] && [ -e "$site_file" ]
 		then
+			echo "SUBMITTING MERGE_WITH_SITE"
 			jid=`sbatch <<- MRGALL | egrep -o -e "\b[0-9]+$"
 				#!/bin/bash -l
 				#SBATCH -p $long_queue
@@ -984,6 +991,7 @@ MRGALL`
 		else
 			if [ $singleend -eq 1 ]
 			then
+				echo "SUBMITTING MERGE_NO_SITE_SINGLEEND"
 				jid=`sbatch <<- MRGALL1 | egrep -o -e "\b[0-9]+$"
 					#!/bin/bash -l
 					#SBATCH -p $long_queue
@@ -1005,6 +1013,7 @@ MRGALL`
 MRGALL1`
 				dependalign="afterok:$jid"
 			else
+				echo "SUBMITTING MERGE_NO_SITE_STEP_1"
 				jid=`sbatch <<- MRGALL1 | egrep -o -e "\b[0-9]+$"
 					#!/bin/bash -l
 					#SBATCH -p $long_queue
@@ -1025,7 +1034,7 @@ MRGALL1`
 MRGALL1`
 			dependalign="afterok:$jid"
 
-				echo "SUBMITTING MERGE2"
+				echo "SUBMITTING MERGE_NO_SITE_STEP_2"
 				jid=`sbatch <<- MRGALL3 | egrep -o -e "\b[0-9]+$"
 					#!/bin/bash -l
 					#SBATCH -p $long_queue
@@ -1048,7 +1057,7 @@ MRGALL3`
 			fi
 		fi
 
-		jid2=`sbatch <<- MRGALL2 | egrep -o -e "\b[0-9]+$"
+		echo "SUBMITTING MERGESORT"
 			#!/bin/bash -l
 			#SBATCH -p $long_queue
 			#SBATCH -o $debugdir/%j-mergesort.out
@@ -1116,6 +1125,7 @@ MERGESORTWAIT`
 		msg="***! Error in job ${ARRAY[$i]}  Type squeue -j ${JIDS[$i]} to see what happened"
 
 		# check that alignment finished successfully
+		echo "SUBMITTING ALIGNCHECK"
 		jid=`sbatch <<- EOF
 			#!/bin/bash -l
 			#SBATCH -o $debugdir/%j-aligncheck.out
@@ -1168,6 +1178,7 @@ then
 		sbatch_mem_alloc="#SBATCH --mem=64G"
 	fi
 
+	echo "SUBMITTING FRAGMERGE"
 	jid=`sbatch <<- EOF
 		#!/bin/bash -l
 		#SBATCH -o $debugdir/%j-fragmerge.out
@@ -1220,6 +1231,7 @@ then
 	# Guard job for dedup. this job is a placeholder to hold any job submitted after dedup.
 	# We keep the ID of this guard, so we can later alter dependencies of inner dedupping phase.
 	# After dedup is done, this job will be released.
+	echo "SUBMITTING DEDUPGUARD"
 	guardjid=`sbatch <<- DEDUPGUARD | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $queue
@@ -1240,6 +1252,7 @@ DEDUPGUARD`
 	dependguard="afterok:$guardjid"
 
 	# if jobs succeeded, kill the cleanup job, remove the duplicates from the big sorted file
+	echo "SUBMITTING DEDUP"
 	jid=`sbatch <<- DEDUP | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $long_queue
@@ -1279,6 +1292,7 @@ DEDUP`
 	scontrol update JobID=$guardjid dependency=afterok:$jid
 
 	#Wait for all parts of split_rmdups to complete:
+	echo "SUBMITTING POST_DEDUP"
 	jid=`sbatch <<- MSPLITWAIT | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $queue
@@ -1316,6 +1330,7 @@ if [ -z $postproc ] && [ -z $final ]
 then
 	# Check that dedupping worked properly
 	awkscript='BEGIN{sscriptname = sprintf("%s/.%s_rmsplit.slurm", debugdir, groupname);}NR==1{if (NF == 2 && $1 == $2 ){print "Sorted and dups/no dups files add up"; printf("#!/bin/bash -l\n#SBATCH -o %s/dup-rm.out\n#SBATCH -e %s/dup-rm.err\n#SBATCH -p %s\n#SBATCH -J %s_msplit0\n#SBATCH -d singleton\n#SBATCH -t 1440\n#SBATCH -c 1\n#SBATCH --ntasks=1\ndate;\nrm %s/*_msplit*; rm %s/split*;\n rm %s/merged_sort.sam;\ndate\n", debugdir, debugdir, queue, groupname, dir, dir, dir) > sscriptname; sysstring = sprintf("sbatch %s", sscriptname); system(sysstring);close(sscriptname); }else{print "Problem"; print "***! Error! The sorted file and dups/no dups files do not add up, or were empty."; exit 1}}'
+	echo "SUBMITTING DUPCHECK"
 	jid=`sbatch <<- DUPCHECK | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $queue
@@ -1337,7 +1352,7 @@ then
 		awk -v debugdir=$debugdir -v queue=$queue -v groupname=$groupname -v dir=$outputdir '$awkscript' $debugdir/dupcheck-${groupname}
 DUPCHECK`
 
-	sbatch_wait="#SBATCH -d afterok:$jid"
+	echo "SUBMITTING MERGED1"
 	jid1=`sbatch <<- MERGED1 | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $queue
@@ -1354,8 +1369,7 @@ DUPCHECK`
 		date
 MERGED1`
 
-	sbatch_wait1="#SBATCH -d afterok:$jid1"
-	jid2=`sbatch <<- MERGED30 | egrep -o -e "\b[0-9]+$"
+	echo "SUBMITTING MERGED30"
 		#!/bin/bash -l
 		#SBATCH -p $queue
 		#SBATCH -o $debugdir/%j-merged30.out
@@ -1375,7 +1389,7 @@ MERGED30`
 
 	sbatch_wait0="#SBATCH -d afterok:$jid1:$jid2"
 
-	jid=`sbatch <<- PRESTATS | egrep -o -e "\b[0-9]+$"
+	echo "SUBMITTING PRESTATS"
 		#!/bin/bash -l
 		#SBATCH -p $queue
 		#SBATCH -o $debugdir/%j-prestats.out
@@ -1420,7 +1434,7 @@ MERGED30`
 PRESTATS`
 	sbatch_wait000="${sbatch_wait1}:$jid"
 
-	jid=`sbatch <<- BAMRM  | egrep -o -e "\b[0-9]+$"
+	echo "SUBMITTING BAMRM"
 		#!/bin/bash -l
 		#SBATCH -p $queue
 		#SBATCH -o $debugdir/%j-bamrm.out
@@ -1440,7 +1454,7 @@ BAMRM`
 
 	if [ "$methylation" = 1 ]
 	then
-		tmpj=`sbatch <<- METH | egrep -o -e "\b[0-9]+$"
+		echo "SUBMITTING METH"
 			#!/bin/bash -l
 			#SBATCH -p commons
 			#SBATCH -o $debugdir/%j-meth.out
@@ -1461,8 +1475,7 @@ BAMRM`
 METH`
 	fi
 
-	sbatch_wait00="${sbatch_wait2}:$jid"
-	jid=`sbatch <<- STATS | egrep -o -e "\b[0-9]+$"
+	echo "SUBMITTING STATS1"
 		#!/bin/bash -l
 		#SBATCH -p $long_queue
 		#SBATCH -o $debugdir/%j-stats1.out
@@ -1491,8 +1504,7 @@ METH`
 STATS`
 	sbatch_wait1="#SBATCH -d afterok:$jid"
 
-	dependstats="afterok:$jid"
-	jid=`sbatch <<- STATS30 | egrep -o -e "\b[0-9]+$"
+	echo "SUBMITTING STATS30"
 		#!/bin/bash -l
 		#SBATCH -p $long_queue
 		#SBATCH -o $debugdir/%j-stats30.out
@@ -1531,7 +1543,7 @@ then
 	then
 		if [ $assembly -eq 1 ]
 		then
-			jid=`sbatch <<- MND | egrep -o -e "\b[0-9]+$"
+			echo "SUBMITTING MND"
 				#!/bin/bash -l
 				#SBATCH -p $queue
 				#SBATCH --mem=2G
@@ -1552,6 +1564,7 @@ MND`
 			sbatch_wait1="#SBATCH -d afterok:$jid"
 		fi
 
+		echo "SUBMITTING FINCLN_EARLY_EXIT"
 		jid=`sbatch <<- FINCLN1 | egrep -o -e "\b[0-9]+$"
 			#!/bin/bash -l
 			#SBATCH -p $queue
@@ -1594,7 +1607,7 @@ FINCLN1`
 		fragstr="-f $site_file"
 	fi
 
-	jid=`sbatch <<- HIC | egrep -o -e "\b[0-9]+$"
+	echo "SUBMITTING HIC1"
 		#!/bin/bash -l
 		#SBATCH -p $long_queue
 		#SBATCH -o $debugdir/%j-hic1.out
@@ -1632,7 +1645,7 @@ HIC`
 
 	dependhic="afterok:$jid"
 
-	jid=`sbatch <<- HIC30 | egrep -o -e "\b[0-9]+$"
+	echo "SUBMITTING HIC30"
 		#!/bin/bash -l
 		#SBATCH -p $long_queue
 		#SBATCH -o $debugdir/%j-hic30.out
@@ -1681,6 +1694,7 @@ then
 	fi
 	if [ "$qc" != 1 ]
 	then
+		echo "SUBMITTING HICCUPS_WRAP"
 		jid=`sbatch <<- HICCUPS | egrep -o -e "\b[0-9]+$"
 			#!/bin/bash -l
 			#SBATCH -p $queue
@@ -1716,6 +1730,7 @@ fi
 
 if [ "$qc" != 1 ]
 then
+	echo "SUBMITTING ARROWHEAD_WRAP"
 	jid=`sbatch <<- ARROWS | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $queue
@@ -1745,6 +1760,7 @@ fi
 
 if [ "$qc_apa" = 1 ]
 then
+	echo "SUBMITTING QC"
 	jid=`sbatch <<- QC | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $queue
@@ -1764,6 +1780,7 @@ then
 QC`
 fi
 
+echo "SUBMITTING FINCLN_STANDARD_EXIT"
 jid=`sbatch <<- FINCLN1 | egrep -o -e "\b[0-9]+$"
 	#!/bin/bash -l
 	#SBATCH -p $queue
