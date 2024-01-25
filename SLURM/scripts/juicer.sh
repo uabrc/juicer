@@ -487,55 +487,59 @@ then
 fi
 
 ## Set threads for sending appropriate parameters to cluster and string for BWA call
-if [ -z "$threads" ]
-then
-	# default is 8 threads; may need to adjust
-	if [ $isRice -eq 1 ]
-	then
-		threads=8
-		sortthreads=8
-		threadstring="-t $threads"
-		sthreadstring="-@ $threads"
-	elif [ $isVoltron -eq 1 ]
-	then
-		threads=8
-		## On voltron with 8 thread per core Power8 CPU bwa can use more threads
-		threadstring="-t \$SLURM_JOB_CPUS_PER_NODE"
-		sthreadstring="-@ \$SLURM_JOB_CPUS_PER_NODE"
-		sortthreads=8
-	else
+# if [ -z "$threads" ]
+# then
+# 	# default is 8 threads; may need to adjust
+# 	if [ $isRice -eq 1 ]
+# 	then
+# 		threads=8
+# 		sortthreads=8
+# 		threadstring="-t $threads"
+# 		sthreadstring="-@ $threads"
+# 	elif [ $isVoltron -eq 1 ]
+# 	then
+# 		threads=8
+# 		## On voltron with 8 thread per core Power8 CPU bwa can use more threads
+# 		threadstring="-t \$SLURM_JOB_CPUS_PER_NODE"
+# 		sthreadstring="-@ \$SLURM_JOB_CPUS_PER_NODE"
+# 		sortthreads=8
+# 	else
 
-	# only one thread if undefined; also if isBCM
-	threads=1
-	sortthreads=1
-	threadstring="-t $threads"
-	sthreadstring="-@ $threads"
+# 	# only one thread if undefined; also if isBCM
+# 	threads=1
+# 	sortthreads=1
+# 	threadstring="-t $threads"
+# 	sthreadstring="-@ $threads"
 
-	fi
-else
-	if [ $isVoltron -eq 1 ]
-	then
-		threadstring="-t \$SLURM_JOB_CPUS_PER_NODE"
-		sthreadstring="-@ \$SLURM_JOB_CPUS_PER_NODE"
-		sortthreads=8
-	else
-		threadstring="-t $threads"
-		sthreadstring="-@ $threads"
-		sortthreads=$threads
-	fi
-fi
+# 	fi
+# else
+# 	if [ $isVoltron -eq 1 ]
+# 	then
+# 		threadstring="-t \$SLURM_JOB_CPUS_PER_NODE"
+# 		sthreadstring="-@ \$SLURM_JOB_CPUS_PER_NODE"
+# 		sortthreads=8
+# 	else
+# 		threadstring="-t $threads"
+# 		sthreadstring="-@ $threads"
+# 		sortthreads=$threads
+# 	fi
+# fi
 
-alloc_mem=$(($threads * 8000))
+# alloc_mem=$(($threads * 8000))
 
-if [ $alloc_mem -gt 80000 ]
-then
-	alloc_mem=80000
-fi
+# if [ $alloc_mem -gt 80000 ]
+# then
+# 	alloc_mem=80000
+# fi
 
-if [ $isBCM -eq 1 ] || [ $isRice -eq 1 ]
-then
-	alloc_mem=50000
-fi
+# if [ $isBCM -eq 1 ] || [ $isRice -eq 1 ]
+# then
+# 	alloc_mem=50000
+# fi
+
+threadstring="-t $threads"
+sthreadstring="-@ $threads"
+alloc_mem=$(($threads * $mem_per_cpu))
 
 ## Directories to be created and regex strings for listing files
 splitdir=${topDir}"/splits"
