@@ -743,13 +743,14 @@ then
 					echo "SUBMITTING SPLIT_STANDARD"
 					jid=`sbatch <<- SPLITEND | egrep -o -e "\b[0-9]+$"
 						#!/bin/bash -l
-									#SBATCH -p $queue
+						#SBATCH -p $queue
 						#SBATCH -t $queue_time
 						#SBATCH -c 1
 						#SBATCH --mem=5G
 						#SBATCH -o $debugdir/%j-split.out
 						#SBATCH -e $debugdir/%j-split.err
 						#SBATCH -J "${groupname}_split_${i}"
+							$userstring
 						$debugString
 						date
 						echo "Split file: $filename"
@@ -767,6 +768,7 @@ SPLITEND`
 						#SBATCH -o $debugdir/%j-split.out
 						#SBATCH -e $debugdir/%j-split.err
 						#SBATCH -J "${groupname}_split_${i}"
+							$userstring
 						$debugString
 						date
 						echo "Split file: $filename"
@@ -835,7 +837,7 @@ SPLITEND`
 		#SBATCH -e $debugdir/%j-wait.err
 		$dependsplitstring
 		#SBATCH -J "${groupname}_split_wait"
-					$userstring
+			$userstring
 		$debugString
 		date
 		/usr/bin/sleep 1
@@ -895,8 +897,8 @@ SPLITWAIT`
 				#SBATCH -e $debugdir/%j-count_ligation.err
 				#SBATCH -J "${groupname}_${jname}_Count_Ligation"
 				#SBATCH --mem=5G
-				$debugString
 					$userstring
+				$debugString
 
 				date
 				export usegzip=${usegzip}; export name=${name}; export name1=${name1}; export name2=${name2}; export ext=${ext}; export ligation=${ligation}; export singleend=${singleend}; ${juiceDir}/scripts/countligations.sh
@@ -918,8 +920,8 @@ CNTLIG`
 				#SBATCH --mem=$alloc_mem
 				#SBATCH -J "${groupname}_align1_${jname}"
 				#SBATCH --threads-per-core=1
-				$debugString
 					$userstring
+				$debugString
 
 				${load_bwa}
 				# Align reads
@@ -978,10 +980,10 @@ ALGNR1`
 				#SBATCH -e $debugdir/%j-count_line.err
 				#SBATCH -J "${groupname}_${jname}_Count_Line"
 				#SBATCH --mem=5G
+					$userstring
 				$debugString
 				${load_awk}
 				${load_samtools}
-					$userstring
 
 				date
 				echo -ne "0 " > ${name}${ext}_norm.txt.res.txt
@@ -1039,7 +1041,7 @@ MRGALL`
 					#SBATCH -J "${groupname}_merge_${jname}"
 						#SBATCH --threads-per-core=1
 						$userstring
-				$debugString
+					$debugString
 					${load_awk}
 					#time awk -v maxcount=1000000 -f $juiceDir/scripts/calculate_insert_size.awk $name$ext.sam > $name$ext.insert_size
 					#will need to combine chimeric_sam and adjust_insert_size
@@ -1104,7 +1106,7 @@ MRGALL3`
 			#SBATCH -d $dependalign
 			#SBATCH -J "${groupname}_mergesort_${jname}"
 			#SBATCH --threads-per-core=1
-			$userstring
+				$userstring
 			$debugString
 			${load_samtools}
 			#we should probably set the -m based on memory / num of threads
@@ -1168,8 +1170,8 @@ MERGESORTWAIT`
 			#SBATCH -t $queue_time
 			#SBATCH -p $queue
 			#SBATCH -J "${groupname}_check"
+				$userstring
 			$debugString
-					$userstring
 
 			date
 			echo "Checking $f"
@@ -1224,7 +1226,8 @@ then
 		${sbatch_cpu_alloc}
 		#SBATCH -J "${groupname}_fragmerge"
 		$debugString
-				$userstring
+			$userstring
+		$debugString
 
 		date
 		if [ -f "${errorfile}" ]
@@ -1299,8 +1302,8 @@ DEDUPGUARD`
 		#SBATCH --ntasks=1
 		#SBATCH -J "${groupname}_dedup"
 		${sbatch_wait}
-		$debugString
 			$userstring
+		$debugString
 
 		${load_awk}
 		date
@@ -1397,6 +1400,7 @@ DUPCHECK`
 		${sbatch_cpu_alloc}
 		#SBATCH --ntasks=1
 		#SBATCH --mem-per-cpu=10G
+			$userstring
 		$debugString
 		${load_samtools}
 
@@ -1415,6 +1419,8 @@ MERGED1`
 		#SBATCH --mem-per-cpu=10G
 		#SBATCH -J "${groupname}_merged30"
 		$debugString
+			$userstring
+
 		${load_samtools}
 
 		samtools view -F 1024 -O sam $sthreadstring ${outputdir}/merged_dedup.sam | awk -v mapq=30 -f ${juiceDir}/scripts/sam_to_pre.awk > ${outputdir}/merged30.txt
@@ -1435,6 +1441,8 @@ MERGED30`
 		#SBATCH --mem-per-cpu=1G
 		#SBATCH -J "${groupname}_prestats"
 		$debugString
+			$userstring
+
 		${load_awk}
 			date
 			${load_java}
@@ -1480,6 +1488,7 @@ PRESTATS`
 		#SBATCH --mem-per-cpu=10G
 		#SBATCH -J "${groupname}_bamrm"
 		$debugString
+			$userstring
 		${load_samtools}
 		if samtools view -b $sthreadstring ${outputdir}/merged_dedup.sam > ${outputdir}/merged_dedup.bam
 		then
@@ -1500,6 +1509,7 @@ BAMRM`
 			#SBATCH --mem-per-cpu=10G
 			#SBATCH -J "${groupname}_meth"
 			$debugString
+				$userstring
 			${load_samtools}
 			export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/gpfs0/home/neva/lib
 			samtools sort $sthreadstring ${outputdir}/merged_dedup.bam > ${outputdir}/merged_dedup_sort.bam
@@ -1806,6 +1816,7 @@ then
 		#SBATCH --ntasks=1
 		#SBATCH -J "${groupname}_qc_apa"
 		$debugString
+			$userstring
 		${load_java}
 		date
 		export IBM_JAVA_OPTIONS="-Xmx4000m -Xgcthreads1"
