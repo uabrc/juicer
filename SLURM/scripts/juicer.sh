@@ -984,59 +984,60 @@ MRGALL`
 			if [ $singleend -eq 1 ]
 			then
 				jid=`sbatch <<- MRGALL1 | egrep -o -e "\b[0-9]+$"
-				#!/bin/bash -l
-				#SBATCH -p $long_queue
-				#SBATCH -o $debugdir/merge1-%j.out
-				#SBATCH -e $debugdir/merge1-%j.err
-				#SBATCH --mem=10G
-				#SBATCH -t $long_queue_time
-				#SBATCH -c 1
-				#SBATCH --ntasks=1
-				#SBATCH -d $dependalign
-				#SBATCH -J "${groupname}_merge_${jname}"
-					#SBATCH --threads-per-core=1
-					$userstring
-				${load_awk}
-				#time awk -v maxcount=1000000 -f $juiceDir/scripts/calculate_insert_size.awk $name$ext.sam > $name$ext.insert_size
-				#will need to combine chimeric_sam and adjust_insert_size
-				time awk -v stem=${name}${ext}_norm -v singleend=$singleend -f $juiceDir/scripts/chimeric_sam.awk $name$ext.sam > $name$ext.sam3
+					#!/bin/bash -l
+					#SBATCH -p $long_queue
+					#SBATCH -o $debugdir/%j-merge1.out
+					#SBATCH -e $debugdir/%j-merge1.err
+					#SBATCH --mem=10G
+					#SBATCH -t $long_queue_time
+					#SBATCH -c 1
+					#SBATCH --ntasks=1
+					#SBATCH -d $dependalign
+					#SBATCH -J "${groupname}_merge_${jname}"
+						#SBATCH --threads-per-core=1
+						$userstring
+					${load_awk}
+					#time awk -v maxcount=1000000 -f $juiceDir/scripts/calculate_insert_size.awk $name$ext.sam > $name$ext.insert_size
+					#will need to combine chimeric_sam and adjust_insert_size
+					time awk -v stem=${name}${ext}_norm -v singleend=$singleend -f $juiceDir/scripts/chimeric_sam.awk $name$ext.sam > $name$ext.sam3
 MRGALL1`
 				dependalign="afterok:$jid"
 			else
-			jid=`sbatch <<- MRGALL1 | egrep -o -e "\b[0-9]+$"
-				#!/bin/bash -l
-				#SBATCH -p $long_queue
-				#SBATCH -o $debugdir/merge1-%j.out
-				#SBATCH -e $debugdir/merge1-%j.err
-				#SBATCH --mem=10G
-				#SBATCH -t $long_queue_time
-				#SBATCH -c 1
-				#SBATCH --ntasks=1
-				#SBATCH -d $dependalign
-				#SBATCH -J "${groupname}_merge_${jname}"
-					#SBATCH --threads-per-core=1
-					$userstring
-				${load_awk}
-				#time awk -v maxcount=1000000 -f $juiceDir/scripts/calculate_insert_size.awk $name$ext.sam > $name$ext.insert_size
-				#will need to combine chimeric_sam and adjust_insert_size
-				time awk -v stem=${name}${ext}_norm -f $juiceDir/scripts/chimeric_sam.awk $name$ext.sam > $name$ext.sam2
+				jid=`sbatch <<- MRGALL1 | egrep -o -e "\b[0-9]+$"
+					#!/bin/bash -l
+					#SBATCH -p $long_queue
+					#SBATCH -o $debugdir/%j-merge1.out
+					#SBATCH -e $debugdir/%j-merge1.err
+					#SBATCH --mem=10G
+					#SBATCH -t $long_queue_time
+					#SBATCH -c 1
+					#SBATCH --ntasks=1
+					#SBATCH -d $dependalign
+					#SBATCH -J "${groupname}_merge_${jname}"
+						#SBATCH --threads-per-core=1
+						$userstring
+					${load_awk}
+					#time awk -v maxcount=1000000 -f $juiceDir/scripts/calculate_insert_size.awk $name$ext.sam > $name$ext.insert_size
+					#will need to combine chimeric_sam and adjust_insert_size
+					time awk -v stem=${name}${ext}_norm -f $juiceDir/scripts/chimeric_sam.awk $name$ext.sam > $name$ext.sam2
 MRGALL1`
 			dependalign="afterok:$jid"
 
-			jid=`sbatch <<- MRGALL3 | egrep -o -e "\b[0-9]+$"
-				#!/bin/bash -l
-				#SBATCH -p $long_queue
-				#SBATCH -o $debugdir/merge2-%j.out
-				#SBATCH -e $debugdir/merge2-%j.err
-				#SBATCH --mem=10G
-				#SBATCH -t $long_queue_time
-				#SBATCH -c 1
-				#SBATCH --ntasks=1
-				#SBATCH -d $dependalign
-				#SBATCH -J "${groupname}_merge_${jname}"
+				echo "SUBMITTING MERGE2"
+				jid=`sbatch <<- MRGALL3 | egrep -o -e "\b[0-9]+$"
+					#!/bin/bash -l
+					#SBATCH -p $long_queue
+					#SBATCH -o $debugdir/%j-merge2.out
+					#SBATCH -e $debugdir/%j-merge2.err
+					#SBATCH --mem=10G
+					#SBATCH -t $long_queue_time
+					#SBATCH -c 1
+					#SBATCH --ntasks=1
+					#SBATCH -d $dependmerge1
+					#SBATCH -J "${groupname}_merge_${jname}"
 						#SBATCH --threads-per-core=1
 						$userstring
-				${load_awk}
+					${load_awk}
 
 				time awk -v avgInsertFile=${name}${ext}_norm.txt.res.txt -f $juiceDir/scripts/adjust_insert_size.awk $name$ext.sam2 > $name$ext.sam3
 MRGALL3`
@@ -1064,12 +1065,12 @@ MRGALL3`
 			# We may need to do a sensitivity study.
 			if time samtools sort -t cb -n -O SAM -@ $sortthreads -l 0 -m 80G $name$ext.sam3 >  ${name}${ext}.sam
 			then
-			rm -f $name$ext.sam2 $name$ext.sam3
-			touch $touchfile
+				rm -f $name$ext.sam2 $name$ext.sam3
+				touch $touchfile
 			else
-			echo "***! Failure during chimera handling of $name${ext}"
-			touch $errorfile
-			exit 1
+				echo "***! Failure during chimera handling of $name${ext}"
+				touch $errorfile
+				exit 1
 			fi
 	MRGALL2`
 		dependmerge="${dependmerge}:${jid2}"
@@ -1678,33 +1679,33 @@ then
 	fi
 	if [ "$qc" != 1 ]
 	then
-	jid=`sbatch <<- HICCUPS | egrep -o -e "\b[0-9]+$"
-	#!/bin/bash -l
-		#SBATCH -p $queue
-		#SBATCH --mem-per-cpu=4G
-		${sbatch_req}
-		#SBATCH -o $debugdir/hiccups_wrap-%j.out
-		#SBATCH -e $debugdir/hiccups_wrap-%j.err
-		#SBATCH -t $queue_time
-		#SBATCH --ntasks=1
-		#SBATCH -J "${groupname}_hiccups_wrap"
-		${sbatch_wait}
-			$userstring
+		jid=`sbatch <<- HICCUPS | egrep -o -e "\b[0-9]+$"
+			#!/bin/bash -l
+			#SBATCH -p $queue
+			#SBATCH --mem-per-cpu=4G
+			${sbatch_req}
+			#SBATCH -o $debugdir/%j-hiccups_wrap.out
+			#SBATCH -e $debugdir/%j-hiccups_wrap.err
+			#SBATCH -t $queue_time
+			#SBATCH --ntasks=1
+			#SBATCH -J "${groupname}_hiccups_wrap"
+			${hic1_and_hic30_wait_depend_sbatch_flag}
+				$userstring
 
-		${load_gpu}
-		echo "load: $load_gpu"
-		${load_java}
-		date
-		nvcc -V
-			if [ -f "${errorfile}" ]
-			then
-				echo "***! Found errorfile. Exiting."
-				exit 1
-			fi
-		${juiceDir}/scripts/juicer_hiccups.sh -j ${juiceDir}/scripts/juicer_tools -i $outputdir/inter_30.hic -m ${juiceDir}/references/motif -g $genomeID
-		date
+			${load_gpu}
+			echo "load: $load_gpu"
+			${load_java}
+			date
+			nvcc -V
+				if [ -f "${errorfile}" ]
+				then
+					echo "***! Found errorfile. Exiting."
+					exit 1
+				fi
+			${juiceDir}/scripts/juicer_hiccups.sh -j ${juiceDir}/scripts/juicer_tools -i $outputdir/inter_30.hic -m ${juiceDir}/references/motif -g $genomeID
+			date
 HICCUPS`
-	dependhiccups="afterok:$jid"
+		dependhiccups="afterok:$jid"
 	fi
 else
 	dependhiccups="afterok"
