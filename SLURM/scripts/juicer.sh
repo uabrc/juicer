@@ -2031,19 +2031,25 @@ then
 		#SBATCH --ntasks=1
 		#SBATCH -J "${groupname}_arrowhead_wrap"
 		${hic1_and_hic30_wait_depend_sbatch_flag}
-		$debugString
 			$userstring
 
+		$debugString
+
 		${load_java}
+
 		date
-			if [ -f "${errorfile}" ]
-			then
-				echo "***! Found errorfile. Exiting."
-				exit 1
-			fi
+
+		if [ -f "${errorfile}" ]
+		then
+			echo "***! Found errorfile. Exiting."
+			exit 1
+		fi
+
 		${juiceDir}/scripts/juicer_arrowhead.sh -j ${juiceDir}/scripts/juicer_tools -i $outputdir/inter_30.hic
+
 		date;
 ARROWS`
+
 	dependarrows="#SBATCH -d ${dependhiccups}:$jid"
 else
 	dependarrows=${hic1_and_hic30_wait_depend_sbatch_flag}
