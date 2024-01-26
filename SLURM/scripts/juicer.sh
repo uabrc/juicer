@@ -1551,7 +1551,7 @@ DUPCHECK`
 	dupcheck_depend_sbatch_flag="#SBATCH -d afterok:$jid"
 
 	echo "SUBMITTING MERGED1"
-	jid1=`sbatch <<- MERGED1 | egrep -o -e "\b[0-9]+$"
+	jid_merged1=`sbatch <<- MERGED1 | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $queue
 		#SBATCH -o $debugdir/%j-merged1.out
@@ -1577,6 +1577,7 @@ MERGED1`
 
 
 	echo "SUBMITTING MERGED30"
+	jid_merged30=`sbatch <<- MERGED30 | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $queue
 		#SBATCH -o $debugdir/%j-merged30.out
@@ -1654,7 +1655,14 @@ MERGED30`
 
 		date
 PRESTATS`
-	sbatch_wait000="${sbatch_wait1}:$jid"
+
+	merged_1_and_30_depend_sbatch_flag="#SBATCH -d afterok:$jid_merged1:$jid_merged30"
+	merged1_and_prestats_depend_sbatch_flag="#SBATCH -d afterok:$jid_merged1:$jid_prestats"
+	merged30_and_prestats_depend_sbatch_flag="#SBATCH -d afterok:$jid_merged30:$jid_prestats"
+
+
+
+
 
 	echo "SUBMITTING BAMRM"
 	jid_bamrm=`sbatch <<- BAMRM  | egrep -o -e "\b[0-9]+$"
@@ -1667,6 +1675,7 @@ PRESTATS`
 		#SBATCH --ntasks=1
 		#SBATCH --mem-per-cpu=10G
 		#SBATCH -J "${groupname}_bamrm"
+		${merged_1_and_30_depend_sbatch_flag}
 		$debugString
 			$userstring
 		${load_samtools}
@@ -1688,6 +1697,7 @@ BAMRM`
 			#SBATCH --ntasks=1
 			#SBATCH --mem-per-cpu=10G
 			#SBATCH -J "${groupname}_meth"
+			$bamrm_depend_sbatch_flag
 			$debugString
 				$userstring
 			${load_samtools}
@@ -1701,6 +1711,7 @@ METH`
 	fi
 
 	echo "SUBMITTING STATS1"
+	jid_stats1=`sbatch <<- STATS1 | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $long_queue
 		#SBATCH -o $debugdir/%j-stats1.out
@@ -1710,6 +1721,7 @@ METH`
 		#SBATCH --ntasks=1
 		#SBATCH --mem=25G
 		#SBATCH -J "${groupname}_stats"
+		${merged1_and_prestats_depend_sbatch_flag}
 		$debugString
 			$userstring
 
@@ -1726,10 +1738,11 @@ METH`
 			${juiceDir}/scripts/juicer_tools statistics $site_file $outputdir/inter.txt $outputdir/merged1.txt $genomePath
 		fi
 		date
-STATS`
-	sbatch_wait1="#SBATCH -d afterok:$jid"
+STATS1`
+
 
 	echo "SUBMITTING STATS30"
+	jid_stats30=`sbatch <<- STATS30 | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $long_queue
 		#SBATCH -o $debugdir/%j-stats30.out
@@ -1739,6 +1752,7 @@ STATS`
 		#SBATCH --ntasks=1
 		#SBATCH --mem=25G
 		#SBATCH -J "${groupname}_stats30"
+		${merged30_and_prestats_depend_sbatch_flag}
 		$debugString
 
 		date
@@ -1751,14 +1765,13 @@ STATS`
 		date
 STATS30`
 
-	dependstats30="afterok:$jid"
-	sbatch_wait1="${sbatch_wait1}:$jid"
-	sbatch_waitstats="#SBATCH -d $dependstats"
-	sbatch_waitstats30="#SBATCH -d $dependstats30"
+	stats1_wait_depend_sbatch_flag="#SBATCH -d afterok:$jid_stats1"
+	stats30_wait_depend_sbatch_flag="#SBATCH -d afterok:$jid_stats30"
+	stats1_and_stats30_depend_sbatch_flag="#SBATCH -d afterok:$jid_stats1:$jid_stats30"
 else
-	sbatch_wait1=""
-	sbatch_waitstats=""
-	sbatch_waitstats30=""
+	stats1_wait_depend_sbatch_flag=""
+	stats30_wait_depend_sbatch_flag=""
+	stats1_and_stats30_depend_sbatch_flag=""
 fi
 
 if [ -z $postproc ]
@@ -1769,6 +1782,7 @@ then
 		if [ $assembly -eq 1 ]
 		then
 			echo "SUBMITTING MND"
+			jid_mnd=`sbatch <<- MND | egrep -o -e "\b[0-9]+$"
 				#!/bin/bash -l
 				#SBATCH -p $queue
 				#SBATCH --mem=2G
@@ -1778,6 +1792,7 @@ then
 				#SBATCH -c 1
 				#SBATCH --ntasks=1
 				#SBATCH -J "${groupname}_mnd"
+				${stats1_and_stats30_depend_sbatch_flag}
 				$debugString
 					$userstring
 				${load_samtools}
@@ -1786,7 +1801,7 @@ then
 				samtools view $sthreadstring -O SAM -F 1024 $outputdir/merged_dedup.*am | awk -v mnd=1 -f ${juiceDir}/scripts/sam_to_pre.awk > ${outputdir}/merged_nodups.txt
 				date
 MND`
-			sbatch_wait1="#SBATCH -d afterok:$jid"
+			mnd_depend_sbatch_flag="#SBATCH -d afterok:$jid_mnd"
 		fi
 
 		echo "SUBMITTING FINCLN_EARLY_EXIT"
@@ -1801,6 +1816,7 @@ MND`
 			#SBATCH --ntasks=1
 			#SBATCH -J "${groupname}_prep_done"
 				#SBATCH --mail-type=END,FAIL
+			${mnd_depend_sbatch_flag}
 			$debugString
 				$userstring
 			date
@@ -1833,6 +1849,7 @@ FINCLN1`
 	fi
 
 	echo "SUBMITTING HIC1"
+	jid_hic1=`sbatch <<- HIC1 | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $long_queue
 		#SBATCH -o $debugdir/%j-hic1.out
@@ -1842,6 +1859,7 @@ FINCLN1`
 		#SBATCH --ntasks=1
 		#SBATCH --mem=150G
 		#SBATCH -J "${groupname}_hic"
+		${stats1_wait_depend_sbatch_flag}
 		$debugString
 			$userstring
 
@@ -1866,11 +1884,12 @@ FINCLN1`
 		time ${juiceDir}/scripts/juicer_tools addNorm $threadNormString ${outputdir}/inter.hic
 		rm -Rf ${outputdir}"/HIC_tmp"
 		date
-HIC`
+HIC1`
 
-	dependhic="afterok:$jid"
+	dependhic1="afterok:$jid_hic1"
 
 	echo "SUBMITTING HIC30"
+	jid_hic30=`sbatch <<- HIC30 | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $long_queue
 		#SBATCH -o $debugdir/%j-hic30.out
@@ -1880,6 +1899,7 @@ HIC`
 		#SBATCH --ntasks=1
 		#SBATCH --mem=150G
 		#SBATCH -J "${groupname}_hic30"
+		${stats30_wait_depend_sbatch_flag}
 		$debugString
 			$userstring
 
@@ -1905,10 +1925,10 @@ HIC`
 		date
 HIC30`
 
-	dependhic30="${dependhic}:$jid"
-	sbatch_wait="#SBATCH -d $dependhic30"
+	dependhic1_and_hic30="${dependhic1}:$jid_hic30"
+	hic1_and_hic30_wait_depend_sbatch_flag="#SBATCH -d $dependhic1_and_hic30"
 else
-	sbatch_wait=""
+	hic1_and_hic30_wait_depend_sbatch_flag=""
 fi
 
 if [[ "$isNots" -eq 1 ]] || [[ "$isVoltron" -eq 1 ]]
@@ -1965,6 +1985,7 @@ then
 		#SBATCH -t $queue_time
 		#SBATCH --ntasks=1
 		#SBATCH -J "${groupname}_arrowhead_wrap"
+		${hic1_and_hic30_wait_depend_sbatch_flag}
 		$debugString
 			$userstring
 
@@ -1980,7 +2001,7 @@ then
 ARROWS`
 	dependarrows="#SBATCH -d ${dependhiccups}:$jid"
 else
-	dependarrows=${sbatch_wait}
+	dependarrows=${hic1_and_hic30_wait_depend_sbatch_flag}
 fi
 
 if [ "$qc_apa" = 1 ]
@@ -1995,6 +2016,7 @@ then
 		#SBATCH -t $queue_time
 		#SBATCH --ntasks=1
 		#SBATCH -J "${groupname}_qc_apa"
+		${hic1_and_hic30_wait_depend_sbatch_flag}
 		$debugString
 			$userstring
 		${load_java}
