@@ -1972,8 +1972,9 @@ if [[ "$isNots" -eq 1 ]] || [[ "$isVoltron" -eq 1 ]]
 then
 	if [[  "$isNots" -eq 1 ]]
 	then
-	sbatch_req="#SBATCH --gres=gpu:kepler:1"
+		sbatch_req="#SBATCH --gres=gpu:kepler:1"
 	fi
+
 	if [ "$qc" != 1 ]
 	then
 		echo "SUBMITTING HICCUPS_WRAP"
