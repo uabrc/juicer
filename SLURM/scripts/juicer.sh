@@ -1833,10 +1833,16 @@ MND`
 			#SBATCH -J "${groupname}_prep_done"
 				#SBATCH --mail-type=END,FAIL
 			${mnd_depend_sbatch_flag}
-			$debugString
 				$userstring
+
+			$debugString
+
 			date
-			export splitdir=${splitdir}; export outputdir=${outputdir}; export early=1;
+
+			export splitdir=${splitdir}
+			export outputdir=${outputdir}
+			export early=1
+
 			if ${juiceDir}/scripts/check.sh
 			then
 				if [ "$cleanup" = 1 ]
@@ -1844,6 +1850,7 @@ MND`
 				${juiceDir}/scripts/cleanup.sh
 				fi
 			fi
+
 			date
 FINCLN1`
 		echo "(-: Finished adding all jobs... Now is a good time to get that cup of coffee... Last job id $jid"
