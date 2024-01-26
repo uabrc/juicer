@@ -900,7 +900,7 @@ SPLITWAIT`
 	declare -a JIDS
 	declare -a TOUCH
 
-	dependmerge="afterok"
+	dependmergesort="afterok"
 	read1contents=( ${read1} )
 	for i in ${read1contents[@]}
 	do
@@ -1214,6 +1214,7 @@ MRGALL3`
 				exit 1
 			fi
 
+		dependmergesort="${dependmergesort}:${jid_mergesort}"
 		ARRAY[countjobs]="${groupname}_mergesort_${jname}"
 		JIDS[countjobs]="${jid}"
 		TOUCH[countjobs]="$touchfile"
