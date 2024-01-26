@@ -699,8 +699,8 @@ jid=`sbatch <<- HEADER | egrep -o -e "\b[0-9]+$"
 	# Get version numbers of all software
 	echo -ne "Juicer version $juicer_version;"
 
-	# The construct ||: ensures that the parenthetical expression has exit code
-	# zero, which ensures the pipe succeeds when -o pipefail is set.
+	# WW: The construct ||: ensures that the parenthetical expression has exit
+	# WW: code zero, which ensures the pipe succeeds when -o pipefail is set.
 	(bwa 2>&1 ||:) | awk '\\\$1=="Version:"{printf(" BWA %s; ", \\\$2)}'
 	if [ "$methylation" = 1 ]
 	then
