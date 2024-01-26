@@ -1281,6 +1281,7 @@ MERGESORTWAIT`
 			#SBATCH -t $queue_time
 			#SBATCH -p $queue
 			#SBATCH -J "${groupname}_check"
+			#SBATCH -d $dependwait
 				$userstring
 
 			$debugString
