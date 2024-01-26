@@ -2068,13 +2068,19 @@ then
 		#SBATCH --ntasks=1
 		#SBATCH -J "${groupname}_qc_apa"
 		${hic1_and_hic30_wait_depend_sbatch_flag}
-		$debugString
 			$userstring
+
+		$debugString
+
 		${load_java}
-		date
+
 		export IBM_JAVA_OPTIONS="-Xmx4000m -Xgcthreads1"
 			export _JAVA_OPTIONS="-Xmx4000m -Xms4000m"
+
+		date
+
 		java -jar ${juiceDir}/scripts/juicer_3.25.21_aggNormAPA.jar apa --ag-norm -k NONE -n 300 -w 100 -r 1000 -q 60 --threads 1 $outputdir/inter_30.hic ${juiceDir}/scripts/GSE63525_GM12878_primary_replicate_HiCCUPS_looplist_with_motifs_unique_localized.txt $outputdir/qc_apa
+
 		date
 QC`
 fi
