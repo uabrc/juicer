@@ -901,8 +901,8 @@ SPLITWAIT`
 	declare -a TOUCH
 
 	dependmerge="afterok"
-
-	for i in ${read1}
+	read1contents=( ${read1} )
+	for i in ${read1contents[@]}
 	do
 		ext=${i#*$read1str}
 		name=${i%$read1str*}
@@ -910,6 +910,16 @@ SPLITWAIT`
 		name1=${name}${read1str}
 		name2=${name}${read2str}
 		jname=$(basename "$name")${ext}
+
+		# echo "i:        $i"
+		# echo "read1str: $read1str"
+		# echo "read1:    $read1"
+		# echo "read2str: $read2str"
+		# echo "name:     $name"
+		# echo "ext:      $ext"
+		# echo "name1:    $name1"
+		# echo "name2:    $name2"
+		# echo "jname:    $jname"
 
 		# RG group; ID derived from paired-end name, sample and library can be user set
 		if [ $singleend -eq 1 ]
