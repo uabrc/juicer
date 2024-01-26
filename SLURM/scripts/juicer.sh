@@ -669,6 +669,7 @@ fi
 
 
 echo "SUBMITTING HEAD"
+headfile="${debugdir}/head.out"
 jid=`sbatch <<- HEADER | egrep -o -e "\b[0-9]+$"
 	#!/bin/bash -l
 		$userstring
@@ -714,8 +715,9 @@ jid=`sbatch <<- HEADER | egrep -o -e "\b[0-9]+$"
 	${juiceDir}/scripts/juicer_tools -V 2>&1 | awk '\\\$1=="Juicer" && \\\$2=="Tools"{printf("%s; ", \\\$0);}'
 
 	echo "$0 $@"
+
+	cp ${debugdir}/\\\$SLURM_JOB_ID-head.out ${headfile}
 HEADER`
-headfile="${debugdir}/head-${jid}.out"
 
 ## Record if we failed while aligning, so we don't waste time on other jobs
 ## Remove file if we're relaunching Juicer
