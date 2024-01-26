@@ -1176,7 +1176,7 @@ MRGALL1`
 
 					${load_awk}
 
-				time awk -v avgInsertFile=${name}${ext}_norm.txt.res.txt -f $juiceDir/scripts/adjust_insert_size.awk $name$ext.sam2 > $name$ext.sam3
+					time awk -v avgInsertFile=${name}${ext}_norm.txt.res.txt -f $juiceDir/scripts/adjust_insert_size.awk $name$ext.sam2 > $name$ext.sam3
 MRGALL3`
 				dependmerge="afterok:$jid"
 			fi
