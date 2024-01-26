@@ -838,7 +838,7 @@ SPLITEND`
 	else
 		## No need to re-split fastqs if they already exist
 		echo -e "---  Using already created files in $splitdir\n"
-	# unzipped files will have .fastq extension, softlinked gz
+		# unzipped files will have .fastq extension, softlinked gz
 		testname=$(ls -lgG ${splitdir} | awk '$7~/fastq$/||$7~/gz$/{print $7; exit}')
 
 	if [[ -z "$chimeric" ]]
