@@ -747,7 +747,7 @@ fi
 
 
 
-echo "SUBMITTING HEAD"
+echo "SUBMITTING HEADER"
 headfile="${debugdir}/head.out"
 jid=`sbatch <<- HEADER | egrep -o -e "\b[0-9]+$"
 	#!/bin/bash -l
@@ -755,9 +755,9 @@ jid=`sbatch <<- HEADER | egrep -o -e "\b[0-9]+$"
 	$queuestring
 	#SBATCH -t 2
 	#SBATCH -c 1
-	#SBATCH -o $debugdir/%j-head.out
-	#SBATCH -e $debugdir/%j-head.err
-	#SBATCH -J "${groupname}_cmd"
+	#SBATCH -o $debugdir/%j-header.out
+	#SBATCH -e $debugdir/%j-header.err
+	#SBATCH -J "${groupname}-header"
 
 	#$debugString
 
@@ -843,15 +843,15 @@ then
 				if [ -z "$gzipped" ]
 				then
 					echo "SUBMITTING SPLIT_STANDARD"
-					jid=`sbatch <<- SPLITEND | egrep -o -e "\b[0-9]+$"
+					jid=`sbatch <<- SPLIT_STANDARD | egrep -o -e "\b[0-9]+$"
 						#!/bin/bash -l
 						#SBATCH -p $queue
 						#SBATCH -t $queue_time
 						#SBATCH -c 1
 						#SBATCH --mem=5G
-						#SBATCH -o $debugdir/%j-split.out
-						#SBATCH -e $debugdir/%j-split.err
-						#SBATCH -J "${groupname}_split_${i}"
+						#SBATCH -o $debugdir/%j-split-standard.out
+						#SBATCH -e $debugdir/%j-split-standard.err
+						#SBATCH -J "${groupname}-split-standard-${i}"
 							$userstring
 
 						$debugString
@@ -862,18 +862,18 @@ then
 						split -a 3 -l $splitsize -d --additional-suffix=.fastq $i $splitdir/$filename
 
 						date
-SPLITEND`
+SPLIT_STANDARD`
 				else
 					echo "SUBMITTING SPLIT_ZCAT"
-					jid=`sbatch <<- SPLITEND | egrep -o -e "\b[0-9]+$"
+					jid=`sbatch <<- SPLIT_ZCAT | egrep -o -e "\b[0-9]+$"
 						#!/bin/bash -l
 						#SBATCH -p $queue
 						#SBATCH -t $queue_time
 						#SBATCH -c 1
 						#SBATCH --mem=5G
-						#SBATCH -o $debugdir/%j-split.out
-						#SBATCH -e $debugdir/%j-split.err
-						#SBATCH -J "${groupname}_split_${i}"
+						#SBATCH -o $debugdir/%j-split-zcat.out
+						#SBATCH -e $debugdir/%j-split-zcat.err
+						#SBATCH -J "${groupname}-split-zcat-${i}"
 							$userstring
 
 						$debugString
@@ -884,7 +884,7 @@ SPLITEND`
 						zcat $i | split -a 3 -l $splitsize -d --additional-suffix=.fastq - $splitdir/$filename
 
 						date
-SPLITEND`
+SPLIT_ZCAT`
 				fi
 
 				dependsplitstring="$dependsplitstring:$jid"
@@ -896,15 +896,15 @@ SPLITEND`
 			# wait
 		else
 			echo "SUBMITTING SPLIT_COPY"
-			jid=`sbatch <<- SPLITEND | egrep -o -e "\b[0-9]+$"
+			jid=`sbatch <<- SPLIT_COPY | egrep -o -e "\b[0-9]+$"
 				#!/bin/bash -l
 				#SBATCH -p $queue
 				#SBATCH -t $queue_time
 				#SBATCH -c 1
 				#SBATCH --mem=5G
-				#SBATCH -o $debugdir/%j-split.out
-				#SBATCH -e $debugdir/%j-split.err
-				#SBATCH -J "${groupname}_split_${i}"
+				#SBATCH -o $debugdir/%j-split-copy.out
+				#SBATCH -e $debugdir/%j-split-copy.err
+				#SBATCH -J "${groupname}-split-copy-${i}"
 					$userstring
 
 				$debugString
@@ -914,7 +914,7 @@ SPLITEND`
 				cp -rs ${fastqdir} ${splitdir}
 
 				date
-SPLITEND`
+SPLIT_COPY`
 
 			dependsplitstring="$dependsplitstring:$jid"
 		fi
@@ -945,18 +945,18 @@ SPLITEND`
 	# split files do not exist yet
 	# must wait on jobs to create them before proceeding
 	# with additional job submissions
-	echo "SUBMITTING SPLITWAIT"
-	jid=`sbatch <<- SPLITWAIT | egrep -o -e "\b[0-9]+$"
+	echo "SUBMITTING SPLIT_WAIT"
+	jid=`sbatch <<- SPLIT_WAIT | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH --wait
 		#SBATCH -p $queue
 		#SBATCH -t 1
 		#SBATCH -c 1
 		#SBATCH --mem=1G
-		#SBATCH -o $debugdir/%j-wait.out
-		#SBATCH -e $debugdir/%j-wait.err
+		#SBATCH -o $debugdir/%j-split-wait.out
+		#SBATCH -e $debugdir/%j-split-wait.err
 		$dependsplitstring
-		#SBATCH -J "${groupname}_split_wait"
+		#SBATCH -J "${groupname}-split-wait"
 			$userstring
 
 		$debugString
@@ -966,7 +966,7 @@ SPLITEND`
 		/usr/bin/sleep 1
 
 		date
-SPLITWAIT`
+SPLIT_WAIT`
 
 	dependsplitwait="afterok:$jid"
 	wait
@@ -1032,14 +1032,14 @@ SPLITWAIT`
 
 			# count ligations
 			echo "SUBMITTING COUNT_LIGATION"
-			jid=`sbatch <<- CNTLIG |  egrep -o -e "\b[0-9]+$"
+			jid=`sbatch <<- COUNT_LIGATION |  egrep -o -e "\b[0-9]+$"
 				#!/bin/bash -l
 				#SBATCH -p $queue
 				#SBATCH -t $queue_time
 				#SBATCH -c 1
-				#SBATCH -o $debugdir/%j-count_ligation.out
-				#SBATCH -e $debugdir/%j-count_ligation.err
-				#SBATCH -J "${groupname}_${jname}_Count_Ligation"
+				#SBATCH -o $debugdir/%j-count-ligation.out
+				#SBATCH -e $debugdir/%j-count-ligation.err
+				#SBATCH -J "${groupname}-${jname}-count-ligation"
 				#SBATCH -d $dependsplitwait
 				#SBATCH --mem=5G
 					$userstring
@@ -1051,7 +1051,7 @@ SPLITWAIT`
 				export usegzip=${usegzip}; export name=${name}; export name1=${name1}; export name2=${name2}; export ext=${ext}; export ligation=${ligation}; export singleend=${singleend}; ${juiceDir}/scripts/countligations.sh
 
 				date
-CNTLIG`
+COUNT_LIGATION`
 			dependcount="$jid"
 
 
@@ -1059,18 +1059,18 @@ CNTLIG`
 
 
 			# align fastqs
-			echo "SUBMITTING ALIGN1"
-			jid=`sbatch <<- ALGNR1 | egrep -o -e "\b[0-9]+$"
+			echo "SUBMITTING ALIGN"
+			jid=`sbatch <<- ALIGN | egrep -o -e "\b[0-9]+$"
 				#!/bin/bash -l
 				$queuestring
-				#SBATCH -o $debugdir/%j-align1.out
-				#SBATCH -e $debugdir/%j-align1.err
+				#SBATCH -o $debugdir/%j-align.out
+				#SBATCH -e $debugdir/%j-align.err
 				#SBATCH -t $queue_time
 				#SBATCH -n 1
 				#SBATCH -c $threads
 				#SBATCH --ntasks=1
 				#SBATCH --mem=$alloc_mem
-				#SBATCH -J "${groupname}_align1_${jname}"
+				#SBATCH -J "${groupname}-align-${jname}"
 				#SBATCH --threads-per-core=1
 					$userstring
 
@@ -1118,20 +1118,20 @@ CNTLIG`
 				fi
 
 				date
-ALGNR1`
+ALIGN`
 			dependalign="afterok:$jid:$dependcount"
 		else
 			name=${i%.sam}
 			ext=""
 			echo "SUBMITTING COUNT_LINE"
-			jid=`sbatch <<- CNTLINE |  egrep -o -e "\b[0-9]+$"
+			jid=`sbatch <<- COUNT_LINE |  egrep -o -e "\b[0-9]+$"
 				#!/bin/bash -l
 				#SBATCH -p $queue
 				#SBATCH -t $queue_time
 				#SBATCH -c 1
-				#SBATCH -o $debugdir/%j-count_line.out
-				#SBATCH -e $debugdir/%j-count_line.err
-				#SBATCH -J "${groupname}_${jname}_Count_Line"
+				#SBATCH -o $debugdir/%j-count-line.out
+				#SBATCH -e $debugdir/%j-count-line.err
+				#SBATCH -J "${groupname}-${jname}-count-line"
 				#SBATCH --mem=5G
 					$userstring
 
@@ -1159,17 +1159,17 @@ CNTLINE`
 		if [ "$site" != "none" ] && [ -e "$site_file" ]
 		then
 			echo "SUBMITTING MERGE_WITH_SITE"
-			jid=`sbatch <<- MRGALL | egrep -o -e "\b[0-9]+$"
+			jid=`sbatch <<- MERGE_WITH_SITE | egrep -o -e "\b[0-9]+$"
 				#!/bin/bash -l
 				#SBATCH -p $long_queue
-				#SBATCH -o $debugdir/%j-merge.out
-				#SBATCH -e $debugdir/%j-merge.err
+				#SBATCH -o $debugdir/%j-merge-with-site.out
+				#SBATCH -e $debugdir/%j-merge-with-site.err
 				#SBATCH --mem=10G
 				#SBATCH -t $long_queue_time
 				#SBATCH -c 1
 				#SBATCH --ntasks=1
 				#SBATCH -d $dependalign
-				#SBATCH -J "${groupname}_merge_${jname}"
+				#SBATCH -J "${groupname}-merge-with-site-${jname}"
 					#SBATCH --threads-per-core=1
 					$userstring
 
@@ -1187,24 +1187,24 @@ CNTLINE`
 				fi
 
 				date
-MRGALL`
+MERGE_WITH_SITE`
 
 			dependmerge="afterok:$jid"
 		else
 			if [ $singleend -eq 1 ]
 			then
 				echo "SUBMITTING MERGE_NO_SITE_SINGLEEND"
-				jid=`sbatch <<- MRGALL1 | egrep -o -e "\b[0-9]+$"
+				jid=`sbatch <<- MERGE_NO_SITE_SINGLEEND | egrep -o -e "\b[0-9]+$"
 					#!/bin/bash -l
 					#SBATCH -p $long_queue
-					#SBATCH -o $debugdir/%j-merge1.out
-					#SBATCH -e $debugdir/%j-merge1.err
+					#SBATCH -o $debugdir/%j-merge-no-site-singleend.out
+					#SBATCH -e $debugdir/%j-merge-no-site-singleend.err
 					#SBATCH --mem=10G
 					#SBATCH -t $long_queue_time
 					#SBATCH -c 1
 					#SBATCH --ntasks=1
 					#SBATCH -d $dependalign
-					#SBATCH -J "${groupname}_merge_${jname}"
+					#SBATCH -J "${groupname}-merge-no-site-singleend-${jname}"
 						#SBATCH --threads-per-core=1
 						$userstring
 
@@ -1215,22 +1215,22 @@ MRGALL`
 					#time awk -v maxcount=1000000 -f $juiceDir/scripts/calculate_insert_size.awk $name$ext.sam > $name$ext.insert_size
 					#will need to combine chimeric_sam and adjust_insert_size
 					time awk -v stem=${name}${ext}_norm -v singleend=$singleend -f $juiceDir/scripts/chimeric_sam.awk $name$ext.sam > $name$ext.sam3
-MRGALL1`
+MERGE_NO_SITE_SINGLEEND`
 
 				dependmerge="afterok:$jid"
 			else
 				echo "SUBMITTING MERGE_NO_SITE_STEP_1"
-				jid=`sbatch <<- MRGALL1 | egrep -o -e "\b[0-9]+$"
+				jid=`sbatch <<- MERGE_NO_SITE_STEP_1 | egrep -o -e "\b[0-9]+$"
 					#!/bin/bash -l
 					#SBATCH -p $long_queue
-					#SBATCH -o $debugdir/%j-merge1.out
-					#SBATCH -e $debugdir/%j-merge1.err
+					#SBATCH -o $debugdir/%j-merge-no-site-step-1.out
+					#SBATCH -e $debugdir/%j-merge-no-site-step-1.err
 					#SBATCH --mem=10G
 					#SBATCH -t $long_queue_time
 					#SBATCH -c 1
 					#SBATCH --ntasks=1
 					#SBATCH -d $dependalign
-					#SBATCH -J "${groupname}_merge_${jname}"
+					#SBATCH -J "${groupname}-merge-no-site-step-1-${jname}"
 						#SBATCH --threads-per-core=1
 						$userstring
 
@@ -1241,21 +1241,21 @@ MRGALL1`
 					#time awk -v maxcount=1000000 -f $juiceDir/scripts/calculate_insert_size.awk $name$ext.sam > $name$ext.insert_size
 					#will need to combine chimeric_sam and adjust_insert_size
 					time awk -v stem=${name}${ext}_norm -f $juiceDir/scripts/chimeric_sam.awk $name$ext.sam > $name$ext.sam2
-MRGALL1`
+MERGE_NO_SITE_STEP_1`
 
 				dependmerge1="afterok:$jid"
 				echo "SUBMITTING MERGE_NO_SITE_STEP_2"
-				jid=`sbatch <<- MRGALL3 | egrep -o -e "\b[0-9]+$"
+				jid=`sbatch <<- MERGE_NO_SITE_STEP_2 | egrep -o -e "\b[0-9]+$"
 					#!/bin/bash -l
 					#SBATCH -p $long_queue
-					#SBATCH -o $debugdir/%j-merge2.out
-					#SBATCH -e $debugdir/%j-merge2.err
+					#SBATCH -o $debugdir/%j-merge-no-site-step-2.out
+					#SBATCH -e $debugdir/%j-merge-no-site-step-2.err
 					#SBATCH --mem=10G
 					#SBATCH -t $long_queue_time
 					#SBATCH -c 1
 					#SBATCH --ntasks=1
 					#SBATCH -d $dependmerge1
-					#SBATCH -J "${groupname}_merge_${jname}"
+					#SBATCH -J "${groupname}-merge-no-site-step-2-${jname}"
 						#SBATCH --threads-per-core=1
 						$userstring
 
@@ -1264,7 +1264,7 @@ MRGALL1`
 					${load_awk}
 
 					time awk -v avgInsertFile=${name}${ext}_norm.txt.res.txt -f $juiceDir/scripts/adjust_insert_size.awk $name$ext.sam2 > $name$ext.sam3
-MRGALL3`
+MERGE_NO_SITE_STEP_2`
 
 				dependmerge="afterok:$jid"
 			fi
@@ -1274,19 +1274,19 @@ MRGALL3`
 
 
 
-		echo "SUBMITTING MERGESORT"
-		jid_mergesort=`sbatch <<- MRGALL2 | egrep -o -e "\b[0-9]+$"
+		echo "SUBMITTING MERGE_SORT"
+		jid_mergesort=`sbatch <<- MERGE_SORT | egrep -o -e "\b[0-9]+$"
 			#!/bin/bash -l
 			#SBATCH -p $long_queue
-			#SBATCH -o $debugdir/%j-mergesort.out
-			#SBATCH -e $debugdir/%j-mergesort.err
+			#SBATCH -o $debugdir/%j-merge-sort.out
+			#SBATCH -e $debugdir/%j-merge-sort.err
 			#SBATCH --mem-per-cpu=80G
 			#SBATCH -t $long_queue_time
 			#SBATCH -c $sortthreads
 			#SBATCH --ntasks=1
 			#SBATCH -d $dependmerge
-			#SBATCH -J "${groupname}_mergesort_${jname}"
-			#SBATCH --threads-per-core=1
+			#SBATCH -J "${groupname}-merge-sort-${jname}"
+				#SBATCH --threads-per-core=1
 				$userstring
 
 			$debugString
@@ -1307,7 +1307,7 @@ MRGALL3`
 				touch $errorfile
 				exit 1
 			fi
-MRGALL2`
+MERGE_SORT`
 
 		dependmergesort="${dependmergesort}:${jid_mergesort}"
 		ARRAY[countjobs]="${groupname}_mergesort_${jname}"
@@ -1325,18 +1325,18 @@ MRGALL2`
 	# must wait on jobs to create them before proceeding
 	# with additional job submissions
 	dependmergestring="#SBATCH -d $dependmergesort"
-	echo "SUBMITTING MERGESORTWAIT"
-	jid=`sbatch <<- MERGESORTWAIT | egrep -o -e "\b[0-9]+$"
+	echo "SUBMITTING MERGE_SORT_GUARD"
+	jid=`sbatch <<- MERGE_SORT_GUARD | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH --wait
 		#SBATCH -p $queue
 		#SBATCH -t 1
 		#SBATCH -c 1
 		#SBATCH --mem=1G
-		#SBATCH -o $debugdir/%j-wait.out
-		#SBATCH -e $debugdir/%j-wait.err
+		#SBATCH -o $debugdir/%j-merge-sort-guard.out
+		#SBATCH -e $debugdir/%j-merge-sort-guard.err
 		$dependmergestring
-		#SBATCH -J "${groupname}_mergesort_wait"
+		#SBATCH -J "${groupname}-merge-sort-guard"
 			$userstring
 
 		$debugString
@@ -1346,7 +1346,7 @@ MRGALL2`
 		/usr/bin/sleep 1
 
 		date
-MERGESORTWAIT`
+MERGE_SORT_GUARD`
 
 	dependwait="afterok:$jid"
 	wait
@@ -1363,14 +1363,14 @@ MERGESORTWAIT`
 
 		# check that alignment finished successfully
 		dependmergecheck="afterok"
-		echo "SUBMITTING ALIGNCHECK"
-		jid=`sbatch <<- EOF
+		echo "SUBMITTING ALIGN_CHECK"
+		jid=`sbatch <<- ALIGN_CHECK
 			#!/bin/bash -l
-			#SBATCH -o $debugdir/%j-aligncheck.out
-			#SBATCH -e $debugdir/%j-aligncheck.err
+			#SBATCH -o $debugdir/%j-align-check.out
+			#SBATCH -e $debugdir/%j-align-check.err
 			#SBATCH -t $queue_time
 			#SBATCH -p $queue
-			#SBATCH -J "${groupname}_check"
+			#SBATCH -J "${groupname}-align-check"
 			#SBATCH -d $dependwait
 				$userstring
 
@@ -1386,7 +1386,7 @@ MERGESORTWAIT`
 			fi
 
 			date
-EOF`
+ALIGN_CHECK`
 
 		jid=$(echo $jid | egrep -o -e "\b[0-9]+$")
 		dependmergecheck="${dependmergecheck}:${jid}"
@@ -1424,16 +1424,16 @@ then
 		sbatch_mem_alloc="#SBATCH --mem=64G"
 	fi
 
-	echo "SUBMITTING FRAGMERGE"
-	jid=`sbatch <<- EOF
+	echo "SUBMITTING FRAG_MERGE"
+	jid=`sbatch <<- FRAG_MERGE
 		#!/bin/bash -l
-		#SBATCH -o $debugdir/%j-fragmerge.out
-		#SBATCH -e $debugdir/%j-fragmerge.err
+		#SBATCH -o $debugdir/%j-frag-merge.out
+		#SBATCH -e $debugdir/%j-frag-merge.err
 		${sbatch_mem_alloc}
 		${sbatch_time}
 		#SBATCH -p $long_queue
 		${sbatch_cpu_alloc}
-		#SBATCH -J "${groupname}_fragmerge"
+		#SBATCH -J "${groupname}-frag-merge"
 		${aligncheck_depend_sbatch_flag}
 			$userstring
 
@@ -1464,7 +1464,7 @@ then
 		fi
 
 		date
-EOF`
+FRAG_MERGE`
 
 	jid=$(echo $jid | egrep -o -e "\b[0-9]+$")
 	dependmrgsrt="afterok:$jid"
@@ -1487,24 +1487,24 @@ then
 	# Guard job for dedup. this job is a placeholder to hold any job submitted after dedup.
 	# We keep the ID of this guard, so we can later alter dependencies of inner dedupping phase.
 	# After dedup is done, this job will be released.
-	echo "SUBMITTING DEDUPGUARD"
-	guardjid=`sbatch <<- DEDUPGUARD | egrep -o -e "\b[0-9]+$"
+	echo "SUBMITTING DEDUP_GUARD"
+	guardjid=`sbatch <<- DEDUP_GUARD | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $queue
-		#SBATCH -o $debugdir/%j-dedupguard.out
-		#SBATCH -e $debugdir/%j-dedupguard.err
+		#SBATCH -o $debugdir/%j-dedup-guard.out
+		#SBATCH -e $debugdir/%j-dedup-guard.err
 		#SBATCH -t 10
 		#SBATCH -c 1
 		#SBATCH -H
 		#SBATCH --ntasks=1
-		#SBATCH -J "${groupname}_dedup_guard"
+		#SBATCH -J "${groupname}-dedup-guard"
 		${mergesort_depend_sbatch_flag}
 			$userstring
 
 		$debugString
 
 		date
-DEDUPGUARD`
+DEDUP_GUARD`
 
 	dedup_depend_guard="afterok:$guardjid"
 
@@ -1527,7 +1527,7 @@ DEDUPGUARD`
 		#SBATCH -t $long_queue_time
 		#SBATCH -c 1
 		#SBATCH --ntasks=1
-		#SBATCH -J "${groupname}_dedup"
+		#SBATCH -J "${groupname}-dedup"
 		${mergesort_depend_sbatch_flag}
 			$userstring
 
@@ -1569,15 +1569,15 @@ DEDUP`
 
 	#Wait for all parts of split_rmdups to complete:
 	echo "SUBMITTING POST_DEDUP"
-	jid=`sbatch <<- MSPLITWAIT | egrep -o -e "\b[0-9]+$"
+	jid=`sbatch <<- POST_DEDUP | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $queue
-		#SBATCH -o $debugdir/%j-post_dedup.out
-		#SBATCH -e $debugdir/%j-post_dedup.err
+		#SBATCH -o $debugdir/%j-post-dedup.out
+		#SBATCH -e $debugdir/%j-post-dedup.err
 		#SBATCH -t 100
 		#SBATCH -c 1
 		#SBATCH --ntasks=1
-		#SBATCH -J "${groupname}_post_dedup"
+		#SBATCH -J "${groupname}-post-dedup"
 		#SBATCH -d ${dedup_depend_guard}
 			$userstring
 
@@ -1590,7 +1590,7 @@ DEDUP`
 		squeue -u $USER -o "%A %T %j %E %R" | column -t
 
 		date
-MSPLITWAIT`
+POST_DEDUP`
 
 	dependmsplit="afterok:$jid"
 	dedup_segment_depend_sbatch_flag="#SBATCH -d $dependmsplit"
@@ -1617,17 +1617,17 @@ if [ -z $postproc ] && [ -z $final ]
 then
 	# Check that dedupping worked properly
 	awkscript='BEGIN{sscriptname = sprintf("%s/.%s_rmsplit.slurm", debugdir, groupname);}NR==1{if (NF == 2 && $1 == $2 ){print "Sorted and dups/no dups files add up"; printf("#!/bin/bash -l\n#SBATCH -o %s/dup-rm.out\n#SBATCH -e %s/dup-rm.err\n#SBATCH -p %s\n#SBATCH -J %s_msplit0\n#SBATCH -d singleton\n#SBATCH -t 1440\n#SBATCH -c 1\n#SBATCH --ntasks=1\ndate;\nrm %s/*_msplit*; rm %s/split*;\n rm %s/merged_sort.sam;\ndate\n", debugdir, debugdir, queue, groupname, dir, dir, dir) > sscriptname; sysstring = sprintf("sbatch %s", sscriptname); system(sysstring);close(sscriptname); }else{print "Problem"; print "***! Error! The sorted file and dups/no dups files do not add up, or were empty."; exit 1}}'
-	echo "SUBMITTING DUPCHECK"
-	jid=`sbatch <<- DUPCHECK | egrep -o -e "\b[0-9]+$"
+	echo "SUBMITTING DUP_CHECK"
+	jid=`sbatch <<- DUP_CHECK | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $queue
-		#SBATCH -o $debugdir/%j-dupcheck.out
-		#SBATCH -e $debugdir/%j-dupcheck.err
+		#SBATCH -o $debugdir/%j-dup-check.out
+		#SBATCH -e $debugdir/%j-dup-check.err
 		#SBATCH -t $queue_time
 		#SBATCH -c 1
 		#SBATCH --ntasks=1
 		#SBATCH --mem-per-cpu=8G
-		#SBATCH -J "${groupname}_dupcheck"
+		#SBATCH -J "${groupname}-dup-check"
 		${dedup_segment_depend_sbatch_flag}
 			$userString
 
@@ -1641,21 +1641,21 @@ then
 		wc -l ${outputdir}/merged_dedup.sam | awk '{printf("%s ", \\\$1)}' >> $debugdir/dupcheck-${groupname}
 		cat $debugdir/dupcheck-${groupname}
 		awk -v debugdir=$debugdir -v queue=$queue -v groupname=$groupname -v dir=$outputdir '$awkscript' $debugdir/dupcheck-${groupname}
-DUPCHECK`
+DUP_CHECK`
 
 	dupcheck_depend_sbatch_flag="#SBATCH -d afterok:$jid"
 
-	echo "SUBMITTING MERGED1"
-	jid_merged1=`sbatch <<- MERGED1 | egrep -o -e "\b[0-9]+$"
+	echo "SUBMITTING MERGED_1"
+	jid_merged1=`sbatch <<- MERGED_1 | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $queue
-		#SBATCH -o $debugdir/%j-merged1.out
-		#SBATCH -e $debugdir/%j-merged1.err
+		#SBATCH -o $debugdir/%j-merged-1.out
+		#SBATCH -e $debugdir/%j-merged-1.err
 		#SBATCH -t $queue_time
 		${sbatch_cpu_alloc}
 		#SBATCH --ntasks=1
 		#SBATCH --mem-per-cpu=10G
-		#SBATCH -J "${groupname}_merged1"
+		#SBATCH -J "${groupname}-merged-1"
 		${dupcheck_depend_sbatch_flag}
 			$userstring
 
@@ -1668,23 +1668,23 @@ DUPCHECK`
 		samtools view -F 1024 -O sam $sthreadstring ${outputdir}/merged_dedup.sam | awk -v mapq=1 -f ${juiceDir}/scripts/sam_to_pre.awk > ${outputdir}/merged1.txt
 
 		date
-MERGED1`
+MERGED_1`
 
 
 
 
 
-	echo "SUBMITTING MERGED30"
-	jid_merged30=`sbatch <<- MERGED30 | egrep -o -e "\b[0-9]+$"
+	echo "SUBMITTING MERGED_30"
+	jid_merged30=`sbatch <<- MERGED_30 | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $queue
-		#SBATCH -o $debugdir/%j-merged30.out
-		#SBATCH -e $debugdir/%j-merged30.err
+		#SBATCH -o $debugdir/%j-merged-30.out
+		#SBATCH -e $debugdir/%j-merged-30.err
 		#SBATCH -t $queue_time
 		${sbatch_cpu_alloc}
 		#SBATCH --ntasks=1
 		#SBATCH --mem-per-cpu=10G
-		#SBATCH -J "${groupname}_merged30"
+		#SBATCH -J "${groupname}-merged-30"
 		${dupcheck_depend_sbatch_flag}
 		$debugString
 			$userstring
@@ -1696,7 +1696,7 @@ MERGED1`
 		samtools view -F 1024 -O sam $sthreadstring ${outputdir}/merged_dedup.sam | awk -v mapq=30 -f ${juiceDir}/scripts/sam_to_pre.awk > ${outputdir}/merged30.txt
 
 		date
-MERGED30`
+MERGED_30`
 	sbatch_wait2="#SBATCH -d afterok:$jid2"
 
 	sbatch_wait0="#SBATCH -d afterok:$jid1:$jid2"
@@ -1715,7 +1715,7 @@ MERGED30`
 		${sbatch_cpu_alloc}
 		#SBATCH --ntasks=1
 		#SBATCH --mem-per-cpu=1G
-		#SBATCH -J "${groupname}_prestats"
+		#SBATCH -J "${groupname}-prestats"
 		${dupcheck_depend_sbatch_flag}
 			$userstring
 
@@ -1775,7 +1775,7 @@ PRESTATS`
 		${sbatch_cpu_alloc}
 		#SBATCH --ntasks=1
 		#SBATCH --mem-per-cpu=10G
-		#SBATCH -J "${groupname}_bamrm"
+		#SBATCH -J "${groupname}-bamrm"
 		${merged_1_and_30_depend_sbatch_flag}
 			$userstring
 
@@ -1803,7 +1803,7 @@ BAMRM`
 			${sbatch_cpu_alloc}
 			#SBATCH --ntasks=1
 			#SBATCH --mem-per-cpu=10G
-			#SBATCH -J "${groupname}_meth"
+			#SBATCH -J "${groupname}-meth"
 			$bamrm_depend_sbatch_flag
 				$userstring
 
@@ -1820,17 +1820,17 @@ BAMRM`
 METH`
 	fi
 
-	echo "SUBMITTING STATS1"
-	jid_stats1=`sbatch <<- STATS1 | egrep -o -e "\b[0-9]+$"
+	echo "SUBMITTING STATS_1"
+	jid_stats1=`sbatch <<- STATS_1 | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $long_queue
-		#SBATCH -o $debugdir/%j-stats1.out
-		#SBATCH -e $debugdir/%j-stats1.err
+		#SBATCH -o $debugdir/%j-stats-1.out
+		#SBATCH -e $debugdir/%j-stats-1.err
 		#SBATCH -t $long_queue_time
 		#SBATCH -c 1
 		#SBATCH --ntasks=1
 		#SBATCH --mem=25G
-		#SBATCH -J "${groupname}_stats"
+		#SBATCH -J "${groupname}-stats-1"
 		${merged1_and_prestats_depend_sbatch_flag}
 			$userstring
 
@@ -1852,20 +1852,20 @@ METH`
 		fi
 
 		date
-STATS1`
+STATS_1`
 
 
-	echo "SUBMITTING STATS30"
-	jid_stats30=`sbatch <<- STATS30 | egrep -o -e "\b[0-9]+$"
+	echo "SUBMITTING STATS_30"
+	jid_stats30=`sbatch <<- STATS_30 | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $long_queue
-		#SBATCH -o $debugdir/%j-stats30.out
-		#SBATCH -e $debugdir/%j-stats30.err
+		#SBATCH -o $debugdir/%j-stats-30.out
+		#SBATCH -e $debugdir/%j-stats-30.err
 		#SBATCH -t $long_queue_time
 		#SBATCH -c 1
 		#SBATCH --ntasks=1
 		#SBATCH --mem=25G
-		#SBATCH -J "${groupname}_stats30"
+		#SBATCH -J "${groupname}-stats-30"
 		${merged30_and_prestats_depend_sbatch_flag}
 			$userstring
 
@@ -1881,7 +1881,7 @@ STATS1`
 		fi
 
 		date
-STATS30`
+STATS_30`
 
 	stats1_wait_depend_sbatch_flag="#SBATCH -d afterok:$jid_stats1"
 	stats30_wait_depend_sbatch_flag="#SBATCH -d afterok:$jid_stats30"
@@ -1909,7 +1909,7 @@ then
 				#SBATCH -t 1200
 				#SBATCH -c 1
 				#SBATCH --ntasks=1
-				#SBATCH -J "${groupname}_mnd"
+				#SBATCH -J "${groupname}-mnd"
 				${stats1_and_stats30_depend_sbatch_flag}
 					$userstring
 
@@ -1927,16 +1927,16 @@ MND`
 		fi
 
 		echo "SUBMITTING FINCLN_EARLY_EXIT"
-		jid=`sbatch <<- FINCLN1 | egrep -o -e "\b[0-9]+$"
+		jid=`sbatch <<- FINCLN_EARLY_EXIT | egrep -o -e "\b[0-9]+$"
 			#!/bin/bash -l
 			#SBATCH -p $queue
 			#SBATCH --mem=2G
-			#SBATCH -o $debugdir/%j-fincln1.out
-			#SBATCH -e $debugdir/%j-fincln1.err
+			#SBATCH -o $debugdir/%j-fincln-early-exit.out
+			#SBATCH -e $debugdir/%j-fincln-early-exit.err
 			#SBATCH -t 1200
 			#SBATCH -c 1
 			#SBATCH --ntasks=1
-			#SBATCH -J "${groupname}_prep_done"
+			#SBATCH -J "${groupname}-fincln-early-exit"
 				#SBATCH --mail-type=END,FAIL
 			${mnd_depend_sbatch_flag}
 				$userstring
@@ -1958,7 +1958,7 @@ MND`
 			fi
 
 			date
-FINCLN1`
+FINCLN_EARLY_EXIT`
 
 		echo "(-: Finished adding all jobs... Now is a good time to get that cup of coffee... Last job id $jid"
 		exit 0
@@ -1978,17 +1978,17 @@ FINCLN1`
 		fragstr="-f $site_file"
 	fi
 
-	echo "SUBMITTING HIC1"
-	jid_hic1=`sbatch <<- HIC1 | egrep -o -e "\b[0-9]+$"
+	echo "SUBMITTING HIC_1"
+	jid_hic1=`sbatch <<- HIC_1 | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $long_queue
-		#SBATCH -o $debugdir/%j-hic1.out
-		#SBATCH -e $debugdir/%j-hic1.err
+		#SBATCH -o $debugdir/%j-hic-1.out
+		#SBATCH -e $debugdir/%j-hic-1.err
 		#SBATCH -t $long_queue_time
 		#SBATCH -c $threadsHic
 		#SBATCH --ntasks=1
 		#SBATCH --mem=150G
-		#SBATCH -J "${groupname}_hic"
+		#SBATCH -J "${groupname}-hic-1"
 		${stats1_wait_depend_sbatch_flag}
 			$userstring
 
@@ -2020,21 +2020,21 @@ FINCLN1`
 		rm -Rf ${outputdir}"/HIC_tmp"
 
 		date
-HIC1`
+HIC_1`
 
 	dependhic1="afterok:$jid_hic1"
 
-	echo "SUBMITTING HIC30"
-	jid_hic30=`sbatch <<- HIC30 | egrep -o -e "\b[0-9]+$"
+	echo "SUBMITTING HIC_30"
+	jid_hic30=`sbatch <<- HIC_30 | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $long_queue
-		#SBATCH -o $debugdir/%j-hic30.out
-		#SBATCH -e $debugdir/%j-hic30.err
+		#SBATCH -o $debugdir/%j-hic-30.out
+		#SBATCH -e $debugdir/%j-hic-30.err
 		#SBATCH -t $long_queue_time
 		#SBATCH -c $threadsHic
 		#SBATCH --ntasks=1
 		#SBATCH --mem=150G
-		#SBATCH -J "${groupname}_hic30"
+		#SBATCH -J "${groupname}-hic-30"
 		${stats30_wait_depend_sbatch_flag}
 			$userstring
 
@@ -2066,7 +2066,7 @@ HIC1`
 		rm -Rf ${outputdir}"/HIC30_tmp"
 
 		date
-HIC30`
+HIC_30`
 
 	dependhic1_and_hic30="${dependhic1}:$jid_hic30"
 	hic1_and_hic30_wait_depend_sbatch_flag="#SBATCH -d $dependhic1_and_hic30"
@@ -2084,16 +2084,16 @@ then
 	if [ "$qc" != 1 ]
 	then
 		echo "SUBMITTING HICCUPS_WRAP"
-		jid=`sbatch <<- HICCUPS | egrep -o -e "\b[0-9]+$"
+		jid=`sbatch <<- HICCUPS_WRAP | egrep -o -e "\b[0-9]+$"
 			#!/bin/bash -l
 			#SBATCH -p $queue
 			#SBATCH --mem-per-cpu=4G
 			${sbatch_req}
-			#SBATCH -o $debugdir/%j-hiccups_wrap.out
-			#SBATCH -e $debugdir/%j-hiccups_wrap.err
+			#SBATCH -o $debugdir/%j-hiccups-wrap.out
+			#SBATCH -e $debugdir/%j-hiccups-wrap.err
 			#SBATCH -t $queue_time
 			#SBATCH --ntasks=1
-			#SBATCH -J "${groupname}_hiccups_wrap"
+			#SBATCH -J "${groupname}-hiccups-wrap"
 			${hic1_and_hic30_wait_depend_sbatch_flag}
 				$userstring
 
@@ -2116,7 +2116,7 @@ then
 			${juiceDir}/scripts/juicer_hiccups.sh -j ${juiceDir}/scripts/juicer_tools -i $outputdir/inter_30.hic -m ${juiceDir}/references/motif -g $genomeID
 
 			date
-HICCUPS`
+HICCUPS_WRAP`
 
 		dependhiccups="afterok:$jid"
 	fi
@@ -2127,15 +2127,15 @@ fi
 if [ "$qc" != 1 ]
 then
 	echo "SUBMITTING ARROWHEAD_WRAP"
-	jid=`sbatch <<- ARROWS | egrep -o -e "\b[0-9]+$"
+	jid=`sbatch <<- ARROWHEAD_WRAP | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $queue
 		#SBATCH --mem-per-cpu=8G
-		#SBATCH -o $debugdir/%j-arrowhead_wrap.out
-		#SBATCH -e $debugdir/%j-arrowhead_wrap.err
+		#SBATCH -o $debugdir/%j-arrowhead-wrap.out
+		#SBATCH -e $debugdir/%j-arrowhead-wrap.err
 		#SBATCH -t $queue_time
 		#SBATCH --ntasks=1
-		#SBATCH -J "${groupname}_arrowhead_wrap"
+		#SBATCH -J "${groupname}-arrowhead-wrap"
 		${hic1_and_hic30_wait_depend_sbatch_flag}
 			$userstring
 
@@ -2154,17 +2154,17 @@ then
 		${juiceDir}/scripts/juicer_arrowhead.sh -j ${juiceDir}/scripts/juicer_tools -i $outputdir/inter_30.hic
 
 		date;
-ARROWS`
+ARROWHEAD_WRAP`
 
-	dependarrows="#SBATCH -d ${dependhiccups}:$jid"
+	depend_arrowhead_wrap="#SBATCH -d ${dependhiccups}:$jid"
 else
-	dependarrows=${hic1_and_hic30_wait_depend_sbatch_flag}
+	depend_arrowhead_wrap=${hic1_and_hic30_wait_depend_sbatch_flag}
 fi
 
 if [ "$qc_apa" = 1 ]
 then
 	echo "SUBMITTING QC"
-	jid=`sbatch <<- QC | egrep -o -e "\b[0-9]+$"
+	jid_qc=`sbatch <<- QC | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $queue
 		#SBATCH --mem-per-cpu=4G
@@ -2172,7 +2172,7 @@ then
 		#SBATCH -e $debugdir/%j-qc.err
 		#SBATCH -t $queue_time
 		#SBATCH --ntasks=1
-		#SBATCH -J "${groupname}_qc_apa"
+		#SBATCH -J "${groupname}-qc-apa"
 		${hic1_and_hic30_wait_depend_sbatch_flag}
 			$userstring
 
@@ -2192,17 +2192,17 @@ QC`
 fi
 
 echo "SUBMITTING FINCLN_STANDARD_EXIT"
-jid=`sbatch <<- FINCLN1 | egrep -o -e "\b[0-9]+$"
+jid_fincln_standard_exit=`sbatch <<- FINCLN_STANDARD_EXIT | egrep -o -e "\b[0-9]+$"
 	#!/bin/bash -l
 	#SBATCH -p $queue
 	#SBATCH --mem-per-cpu=2G
-	#SBATCH -o $debugdir/%j-fincln.out
-	#SBATCH -e $debugdir/%j-fincln.err
+	#SBATCH -o $debugdir/%j-fincln-standard-exit.out
+	#SBATCH -e $debugdir/%j-fincln-standard-exit.err
 	#SBATCH -t 1200
 	#SBATCH -c 1
 	#SBATCH --ntasks=1
-	#SBATCH -J "${groupname}_prep_done"
-	$dependarrows
+	#SBATCH -J "${groupname}-fincln-standard-exit"
+	$depend_arrowhead_wrap
 		$userstring
 
 	$debugString
@@ -2222,6 +2222,6 @@ jid=`sbatch <<- FINCLN1 | egrep -o -e "\b[0-9]+$"
 
 	date
 
-FINCLN1`
+FINCLN_STANDARD_EXIT`
 
 echo "(-: Finished adding all jobs... Now is a good time to get that cup of coffee... Last job id $jid"
