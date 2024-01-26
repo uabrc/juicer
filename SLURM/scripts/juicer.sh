@@ -588,14 +588,14 @@ then
 	testname=$(ls -lgG ${fastqdir} | awk 'NR==1{print $7}')
 	if [ "${testname: -3}" == ".gz" ]
 	then
-		read1=${splitdir}"/*${read1str}*.fastq.gz"
+		read1="${splitdir}/*${read1str}*.fastq.gz"
 		gzipped=1
 	else
-		read1=${splitdir}"/*${read1str}*.fastq"
+		read1="${splitdir}/*${read1str}*.fastq"
 	fi
 elif [[ -n "$chimeric" ]]
 then
-	read1=${splitdir}"/*.sam"
+	read1="${splitdir}/*.sam"
 fi
 
 ## Create split directory
