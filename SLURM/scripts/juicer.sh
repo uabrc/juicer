@@ -1605,6 +1605,7 @@ MERGED30`
 
 
 	echo "SUBMITTING PRESTATS"
+	jid_prestats=`sbatch <<- PRESTATS | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $queue
 		#SBATCH -o $debugdir/%j-prestats.out
