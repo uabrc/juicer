@@ -1766,12 +1766,14 @@ STATS1`
 		$debugString
 
 		date
+
 		if [ $assembly -eq 1 ]
 			then
 			${juiceDir}/scripts/juicer_tools statistics $site_file $outputdir/inter_30.txt $outputdir/merged30.txt none
 		else
-		${juiceDir}/scripts/juicer_tools statistics $site_file $outputdir/inter_30.txt $outputdir/merged30.txt $genomePath
+			${juiceDir}/scripts/juicer_tools statistics $site_file $outputdir/inter_30.txt $outputdir/merged30.txt $genomePath
 		fi
+
 		date
 STATS30`
 
