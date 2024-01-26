@@ -1391,9 +1391,9 @@ if [ -z $final ] && [ -z $postproc ] && [ -z $afterdedup ]
 then
 	if [ -z $dedup ]
 	then
-		sbatch_wait="#SBATCH -d $dependmrgsrt"
+		mergesort_depend_sbatch_flag="#SBATCH -d $dependmrgsrt"
 	else
-		sbatch_wait=""
+		mergesort_depend_sbatch_flag=""
 	fi
 
 	# Guard job for dedup. this job is a placeholder to hold any job submitted after dedup.
@@ -1410,7 +1410,7 @@ then
 		#SBATCH -H
 		#SBATCH --ntasks=1
 		#SBATCH -J "${groupname}_dedup_guard"
-		${sbatch_wait}
+		${mergesort_depend_sbatch_flag}
 			$userstring
 
 		$debugString
@@ -1434,7 +1434,7 @@ DEDUPGUARD`
 		#SBATCH -c 1
 		#SBATCH --ntasks=1
 		#SBATCH -J "${groupname}_dedup"
-		${sbatch_wait}
+		${mergesort_depend_sbatch_flag}
 			$userstring
 
 		$debugString
