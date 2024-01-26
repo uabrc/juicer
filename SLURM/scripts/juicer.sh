@@ -1461,6 +1461,8 @@ DEDUPGUARD`
 
 		date
 
+		# WW: possible race condition
+		# WW: could be after "scontrol update" in calling script, below
 		scontrol release $guardjid
 DEDUP`
 
