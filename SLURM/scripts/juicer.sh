@@ -1541,6 +1541,7 @@ then
 		${load_awk}
 
 		date
+
 		wc -l ${outputdir}/merged_sort.sam |  awk '{printf("%s ", \\\$1)}' > $debugdir/dupcheck-${groupname}
 		wc -l ${outputdir}/merged_dedup.sam | awk '{printf("%s ", \\\$1)}' >> $debugdir/dupcheck-${groupname}
 		cat $debugdir/dupcheck-${groupname}
