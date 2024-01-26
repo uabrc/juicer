@@ -1422,6 +1422,8 @@ DEDUPGUARD`
 
 	# if jobs succeeded, kill the cleanup job, remove the duplicates from the big sorted file
 
+	# needed for set -u, otherwise unbound
+	groupname_msplit0=""
 
 	echo "SUBMITTING DEDUP"
 	jid=`sbatch <<- DEDUP | egrep -o -e "\b[0-9]+$"
