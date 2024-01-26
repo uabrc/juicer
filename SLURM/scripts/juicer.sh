@@ -1930,28 +1930,35 @@ HIC1`
 		#SBATCH --mem=150G
 		#SBATCH -J "${groupname}_hic30"
 		${stats30_wait_depend_sbatch_flag}
-		$debugString
 			$userstring
 
+		$debugString
+
 		${load_java}
+
 		export IBM_JAVA_OPTIONS="-Xmx150000m -Xgcthreads1"
 		export _JAVA_OPTIONS="-Xmx150000m -Xms150000m"
+
 		date
-			if [ -f "${errorfile}" ]
-			then
-				echo "***! Found errorfile. Exiting."
-				exit 1
-			fi
+
+		if [ -f "${errorfile}" ]
+		then
+			echo "***! Found errorfile. Exiting."
+			exit 1
+		fi
+
 		mkdir ${outputdir}"/HIC30_tmp"
+
 		# multithreaded and index doesn't exist yet
 		if [[ $threadsHic -gt 1 ]] && [[ ! -s ${outputdir}/merged30_index.txt ]]
 		then
-		time ${juiceDir}/scripts/index_by_chr.awk ${outputdir}/merged30.txt 500000 > ${outputdir}/merged30_index.txt
+			time ${juiceDir}/scripts/index_by_chr.awk ${outputdir}/merged30.txt 500000 > ${outputdir}/merged30_index.txt
 		fi
 
 		time ${juiceDir}/scripts/juicer_tools pre -n -s $outputdir/inter_30.txt -g $outputdir/inter_30_hists.m -q 30 $resstr $fragstr $threadHic30String $outputdir/merged30.txt $outputdir/inter_30.hic $genomePath
 		time ${juiceDir}/scripts/juicer_tools addNorm $threadNormString ${outputdir}/inter_30.hic
 		rm -Rf ${outputdir}"/HIC30_tmp"
+
 		date
 HIC30`
 
