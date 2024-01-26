@@ -1300,7 +1300,7 @@ MERGESORTWAIT`
 EOF`
 
 		jid=$(echo $jid | egrep -o -e "\b[0-9]+$")
-		dependmergecheck="${dependmerge}:${jid}"
+		dependmergecheck="${dependmergecheck}:${jid}"
 	done
 fi  # Not in merge, dedup,  or final stage, i.e. need to split and align files.
 
@@ -1313,9 +1313,9 @@ if [ -z $final ] && [ -z $dedup ] && [ -z $postproc ] && [ -z $afterdedup ]
 then
 	if [ -z $merge ]
 	then
-		sbatch_wait="#SBATCH -d $dependmergecheck"
+		aligncheck_depend_sbatch_flag="#SBATCH -d $dependmergecheck"
 	else
-		sbatch_wait=""
+		aligncheck_depend_sbatch_flag=""
 	fi
 
 	# merge the sorted files into one giant file that is also sorted. jid=`sbatch <<- MRGSRT | egrep -o -e "\b[0-9]+$"
@@ -1346,7 +1346,7 @@ then
 		#SBATCH -p $long_queue
 		${sbatch_cpu_alloc}
 		#SBATCH -J "${groupname}_fragmerge"
-		$debugString
+		${aligncheck_depend_sbatch_flag}
 			$userstring
 
 		$debugString
