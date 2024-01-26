@@ -1548,6 +1548,7 @@ then
 		awk -v debugdir=$debugdir -v queue=$queue -v groupname=$groupname -v dir=$outputdir '$awkscript' $debugdir/dupcheck-${groupname}
 DUPCHECK`
 
+	dupcheck_depend_sbatch_flag="#SBATCH -d afterok:$jid"
 
 	echo "SUBMITTING MERGED1"
 	jid1=`sbatch <<- MERGED1 | egrep -o -e "\b[0-9]+$"
@@ -1559,6 +1560,7 @@ DUPCHECK`
 		${sbatch_cpu_alloc}
 		#SBATCH --ntasks=1
 		#SBATCH --mem-per-cpu=10G
+		${dupcheck_depend_sbatch_flag}
 			$userstring
 
 		$debugString
@@ -1584,6 +1586,7 @@ MERGED1`
 		#SBATCH --ntasks=1
 		#SBATCH --mem-per-cpu=10G
 		#SBATCH -J "${groupname}_merged30"
+		${dupcheck_depend_sbatch_flag}
 		$debugString
 			$userstring
 
@@ -1611,6 +1614,7 @@ MERGED30`
 		#SBATCH --ntasks=1
 		#SBATCH --mem-per-cpu=1G
 		#SBATCH -J "${groupname}_prestats"
+		${dupcheck_depend_sbatch_flag}
 		$debugString
 			$userstring
 
