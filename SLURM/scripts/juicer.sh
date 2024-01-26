@@ -1248,6 +1248,7 @@ MRGALL2`
 		#SBATCH -e $debugdir/%j-wait.err
 		$dependmergestring
 		#SBATCH -J "${groupname}_mergesort_wait"
+			$userstring
 
 		$debugString
 
