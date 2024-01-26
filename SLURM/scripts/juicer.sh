@@ -1762,6 +1762,7 @@ STATS1`
 		#SBATCH -J "${groupname}_stats30"
 		${merged30_and_prestats_depend_sbatch_flag}
 		$debugString
+			$userstring
 
 		date
 		if [ $assembly -eq 1 ]
