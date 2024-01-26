@@ -1310,7 +1310,7 @@ MERGE_NO_SITE_STEP_2`
 MERGE_SORT`
 
 		dependmergesort="${dependmergesort}:${jid_mergesort}"
-		ARRAY[countjobs]="${groupname}_mergesort_${jname}"
+		ARRAY[countjobs]="${groupname}-merge-sort-${jname}"
 		JIDS[countjobs]="${jid_mergesort}"
 		TOUCH[countjobs]="$touchfile"
 		countjobs=$(( $countjobs + 1 ))
