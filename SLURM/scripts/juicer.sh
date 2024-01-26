@@ -1469,6 +1469,7 @@ DEDUP`
 	dependosplit="afterok:$jid"
 
 	#Push dedup guard to run only after dedup is complete:
+	scontrol update JobID=$guardjid dependency=$dependosplit
 
 
 
