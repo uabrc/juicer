@@ -2097,10 +2097,12 @@ jid=`sbatch <<- FINCLN1 | egrep -o -e "\b[0-9]+$"
 	#SBATCH --ntasks=1
 	#SBATCH -J "${groupname}_prep_done"
 	$dependarrows
-	$debugString
 		$userstring
 
+	$debugString
+
 	date
+
 	export splitdir=${splitdir}
 	export outputdir=${outputdir}
 
@@ -2111,7 +2113,9 @@ jid=`sbatch <<- FINCLN1 | egrep -o -e "\b[0-9]+$"
 			${juiceDir}/scripts/cleanup.sh
 		fi
 	fi
+
 	date
+
 FINCLN1`
 
 echo "(-: Finished adding all jobs... Now is a good time to get that cup of coffee... Last job id $jid"
