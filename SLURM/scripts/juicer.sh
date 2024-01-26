@@ -875,13 +875,13 @@ SPLITEND`
 		$dependsplitstring
 		#SBATCH -J "${groupname}_split_wait"
 			$userstring
-			
+
 		$debugString
-		
+
 		date
-		
+
 		/usr/bin/sleep 1
-		
+
 		date
 SPLITWAIT`
 
