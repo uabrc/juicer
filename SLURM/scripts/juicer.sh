@@ -1206,7 +1206,9 @@ MRGALL3`
 
 			#we should probably set the -m based on memory / num of threads
 			# WW: this failed again, it's not at all clear how memory depends on input, but a flat value doesn't seem to cut it.
-			# We may need to do a sensitivity study.
+			# WW: We may need to do a sensitivity study.
+			# WW: According to Arko, this value comes from intermediate file writes starting with bwa mem
+			# WW: Should be piped directly from bwa mem to samtools sort
 			if time samtools sort -t cb -n -O SAM -@ $sortthreads -l 0 -m 80G $name$ext.sam3 >  ${name}${ext}.sam
 			then
 				rm -f $name$ext.sam2 $name$ext.sam3
