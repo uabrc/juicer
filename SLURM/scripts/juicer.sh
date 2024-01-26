@@ -1692,7 +1692,10 @@ BAMRM`
 
 	if [ "$methylation" = 1 ]
 	then
+		bamrm_depend_sbatch_flag="#SBATCH -d afterok:$jid_bamrm"
+
 		echo "SUBMITTING METH"
+		jid_UNUSED=`sbatch <<- METH | egrep -o -e "\b[0-9]+$"
 			#!/bin/bash -l
 			#SBATCH -p commons
 			#SBATCH -o $debugdir/%j-meth.out
