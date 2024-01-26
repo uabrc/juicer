@@ -1192,7 +1192,7 @@ MRGALL3`
 			#SBATCH -p $long_queue
 			#SBATCH -o $debugdir/%j-mergesort.out
 			#SBATCH -e $debugdir/%j-mergesort.err
-			#SBATCH --mem-per-cpu=3G
+			#SBATCH --mem-per-cpu=80G
 			#SBATCH -t $long_queue_time
 			#SBATCH -c $sortthreads
 			#SBATCH --ntasks=1
