@@ -1560,6 +1560,7 @@ DUPCHECK`
 		${sbatch_cpu_alloc}
 		#SBATCH --ntasks=1
 		#SBATCH --mem-per-cpu=10G
+		#SBATCH -J "${groupname}_merged1"
 		${dupcheck_depend_sbatch_flag}
 			$userstring
 
