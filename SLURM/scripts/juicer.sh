@@ -663,6 +663,11 @@ then
 else
 	queuestring="#SBATCH -p $queue"
 fi
+
+
+
+
+
 echo "SUBMITTING HEAD"
 jid=`sbatch <<- HEADER | egrep -o -e "\b[0-9]+$"
 	#!/bin/bash -l
@@ -673,8 +678,11 @@ jid=`sbatch <<- HEADER | egrep -o -e "\b[0-9]+$"
 	#SBATCH -o $debugdir/%j-head.out
 	#SBATCH -e $debugdir/%j-head.err
 	#SBATCH -J "${groupname}_cmd"
+
 	#$debugString
+
 	date
+
 	${load_bwa}
 	${load_java}
 	${load_awk}
@@ -695,11 +703,13 @@ jid=`sbatch <<- HEADER | egrep -o -e "\b[0-9]+$"
 		activate conda
 		$call_bwameth --version 2>&1 | awk '{printf("%s; ", \\\$0)}'
 	fi
+
 	echo -ne "$threads threads; "
 	if [ -n "$splitme" ]
 	then
 		echo -ne "splitsize $splitsize; "
 	fi
+
 	java -version 2>&1 | awk 'NR==1{printf("%s; ", \\\$0);}'
 	${juiceDir}/scripts/juicer_tools -V 2>&1 | awk '\\\$1=="Juicer" && \\\$2=="Tools"{printf("%s; ", \\\$0);}'
 
@@ -724,6 +734,10 @@ then
 	else
 		echo -e "(-: Aligning files matching $fastqdir\n in queue $queue to genome $refSeq with no fragment delimited maps."
 	fi
+
+
+
+
 
 	## Split fastq files into smaller portions for parallelizing alignment
 	## Do this by creating a text script file for the job on STDIN and then
@@ -751,10 +765,14 @@ then
 						#SBATCH -e $debugdir/%j-split.err
 						#SBATCH -J "${groupname}_split_${i}"
 							$userstring
+
 						$debugString
+
 						date
+
 						echo "Split file: $filename"
 						split -a 3 -l $splitsize -d --additional-suffix=.fastq $i $splitdir/$filename
+
 						date
 SPLITEND`
 				else
@@ -769,10 +787,14 @@ SPLITEND`
 						#SBATCH -e $debugdir/%j-split.err
 						#SBATCH -J "${groupname}_split_${i}"
 							$userstring
+
 						$debugString
+
 						date
+
 						echo "Split file: $filename"
 						zcat $i | split -a 3 -l $splitsize -d --additional-suffix=.fastq - $splitdir/$filename
+
 						date
 SPLITEND`
 				fi
@@ -796,11 +818,16 @@ SPLITEND`
 				#SBATCH -e $debugdir/%j-split.err
 				#SBATCH -J "${groupname}_split_${i}"
 					$userstring
+
 				$debugString
+
 				date
+
 				cp -rs ${fastqdir} ${splitdir}
+
 				date
 SPLITEND`
+
 			dependsplitstring="$dependsplitstring:$jid"
 		fi
 	else
@@ -818,8 +845,13 @@ SPLITEND`
 			read1=${splitdir}"/*${read1str}*.fastq"
 		fi
 		fi
+
 		dependsplitstring=""
 	fi
+
+
+
+
 
 	# await for all split jobs to finish
 	# split files do not exist yet
@@ -838,11 +870,16 @@ SPLITEND`
 		$dependsplitstring
 		#SBATCH -J "${groupname}_split_wait"
 			$userstring
+			
 		$debugString
+		
 		date
+		
 		/usr/bin/sleep 1
+		
 		date
 SPLITWAIT`
+
 	dependwait="afterok:$jid"
 	wait
 
@@ -876,7 +913,12 @@ SPLITWAIT`
 		else
 			rg="@RG\\tID:${jname%%.fastq*}\\tSM:${sampleName}\\tPL:ILM\\tLB:${libraryName}"
 		fi
+
 		touchfile=${tmpdir}/${jname}
+
+
+
+
 
 		if [ -z "$chimeric" ]
 		then
@@ -898,13 +940,20 @@ SPLITWAIT`
 				#SBATCH -J "${groupname}_${jname}_Count_Ligation"
 				#SBATCH --mem=5G
 					$userstring
+
 				$debugString
 
 				date
+
 				export usegzip=${usegzip}; export name=${name}; export name1=${name1}; export name2=${name2}; export ext=${ext}; export ligation=${ligation}; export singleend=${singleend}; ${juiceDir}/scripts/countligations.sh
+
 				date
 CNTLIG`
 			dependcount="$jid"
+
+
+
+
 
 			# align fastqs
 			echo "SUBMITTING ALIGN1"
@@ -921,6 +970,7 @@ CNTLIG`
 				#SBATCH -J "${groupname}_align1_${jname}"
 				#SBATCH --threads-per-core=1
 					$userstring
+
 				$debugString
 
 				${load_bwa}
@@ -981,18 +1031,26 @@ ALGNR1`
 				#SBATCH -J "${groupname}_${jname}_Count_Line"
 				#SBATCH --mem=5G
 					$userstring
+
 				$debugString
+
 				${load_awk}
 				${load_samtools}
 
 				date
+
 				echo -ne "0 " > ${name}${ext}_norm.txt.res.txt
 				samtools flagstat $i | awk '\\\$0~/paired in sequencing/{print \\\$1*2; exit}' > ${i}_linecount.txt
+
 				date
 CNTLINE`
 
 			dependalign="afterok:$jid"
 		fi
+
+
+
+
 
 		# wait for alignment, chimeric read handling
 		if [ "$site" != "none" ] && [ -e "$site_file" ]
@@ -1011,19 +1069,23 @@ CNTLINE`
 				#SBATCH -J "${groupname}_merge_${jname}"
 					#SBATCH --threads-per-core=1
 					$userstring
+
 				$debugString
+
 				${load_awk}
 
 				date
+
 				if [ $singleend -eq 1 ]
 				then
 					time awk -v stem=${name}${ext}_norm -v site_file=$site_file -v singleend=$singleend -f $juiceDir/scripts/chimeric_sam.awk $name$ext.sam > $name$ext.sam3
 				else
 					time awk -v stem=${name}${ext}_norm -v site_file=$site_file -f $juiceDir/scripts/chimeric_sam.awk $name$ext.sam > $name$ext.sam3
 				fi
+
 				date
 MRGALL`
-			dependalign="afterok:$jid"
+
 		else
 			if [ $singleend -eq 1 ]
 			then
@@ -1041,13 +1103,16 @@ MRGALL`
 					#SBATCH -J "${groupname}_merge_${jname}"
 						#SBATCH --threads-per-core=1
 						$userstring
+
 					$debugString
+
 					${load_awk}
+
 					#time awk -v maxcount=1000000 -f $juiceDir/scripts/calculate_insert_size.awk $name$ext.sam > $name$ext.insert_size
 					#will need to combine chimeric_sam and adjust_insert_size
 					time awk -v stem=${name}${ext}_norm -v singleend=$singleend -f $juiceDir/scripts/chimeric_sam.awk $name$ext.sam > $name$ext.sam3
 MRGALL1`
-				dependalign="afterok:$jid"
+
 			else
 				echo "SUBMITTING MERGE_NO_SITE_STEP_1"
 				jid=`sbatch <<- MRGALL1 | egrep -o -e "\b[0-9]+$"
@@ -1063,8 +1128,11 @@ MRGALL1`
 					#SBATCH -J "${groupname}_merge_${jname}"
 						#SBATCH --threads-per-core=1
 						$userstring
+
 					$debugString
+
 					${load_awk}
+
 					#time awk -v maxcount=1000000 -f $juiceDir/scripts/calculate_insert_size.awk $name$ext.sam > $name$ext.insert_size
 					#will need to combine chimeric_sam and adjust_insert_size
 					time awk -v stem=${name}${ext}_norm -f $juiceDir/scripts/chimeric_sam.awk $name$ext.sam > $name$ext.sam2
@@ -1085,7 +1153,9 @@ MRGALL1`
 					#SBATCH -J "${groupname}_merge_${jname}"
 						#SBATCH --threads-per-core=1
 						$userstring
+
 					$debugString
+
 					${load_awk}
 
 				time awk -v avgInsertFile=${name}${ext}_norm.txt.res.txt -f $juiceDir/scripts/adjust_insert_size.awk $name$ext.sam2 > $name$ext.sam3
@@ -1093,6 +1163,10 @@ MRGALL3`
 			dependalign="afterok:$jid"
 			fi
 		fi
+
+
+
+
 
 		echo "SUBMITTING MERGESORT"
 			#!/bin/bash -l
@@ -1108,7 +1182,9 @@ MRGALL3`
 			#SBATCH --threads-per-core=1
 				$userstring
 			$debugString
+
 			${load_samtools}
+
 			#we should probably set the -m based on memory / num of threads
 			# WW: this failed again, it's not at all clear how memory depends on input, but a flat value doesn't seem to cut it.
 			# We may need to do a sensitivity study.
@@ -1121,13 +1197,16 @@ MRGALL3`
 				touch $errorfile
 				exit 1
 			fi
-	MRGALL2`
-		dependmerge="${dependmerge}:${jid2}"
+
 		ARRAY[countjobs]="${groupname}_mergesort_${jname}"
 		JIDS[countjobs]="${jid}"
 		TOUCH[countjobs]="$touchfile"
 		countjobs=$(( $countjobs + 1 ))
 	done # done looping over all fastq split files
+
+
+
+
 
 	# await for all split jobs to finish
 	# split files do not exist yet
@@ -1146,14 +1225,22 @@ MRGALL3`
 		#SBATCH -e $debugdir/%j-wait.err
 		$dependmergestring
 		#SBATCH -J "${groupname}_mergesort_wait"
-				$userstring
+
 		$debugString
+
 		date
+
 		/usr/bin/sleep 1
+
 		date
 MERGESORTWAIT`
+
 	dependwait="afterok:$jid"
 	wait
+
+
+
+
 
 	# list of all jobs. print errors if failed
 	for (( i=0; i < $countjobs; i++ ))
@@ -1171,21 +1258,29 @@ MERGESORTWAIT`
 			#SBATCH -p $queue
 			#SBATCH -J "${groupname}_check"
 				$userstring
+
 			$debugString
 
 			date
+
 			echo "Checking $f"
 			if [ ! -e $f ]
 			then
 				echo $msg
 				touch $errorfile
 			fi
+
 			date
 EOF`
+
 		jid=$(echo $jid | egrep -o -e "\b[0-9]+$")
 		dependmergecheck="${dependmerge}:${jid}"
 	done
 fi  # Not in merge, dedup,  or final stage, i.e. need to split and align files.
+
+
+
+
 
 # Not in final, dedup, or postproc
 if [ -z $final ] && [ -z $dedup ] && [ -z $postproc ] && [ -z $afterdedup ]
@@ -1227,9 +1322,11 @@ then
 		#SBATCH -J "${groupname}_fragmerge"
 		$debugString
 			$userstring
+
 		$debugString
 
 		date
+
 		if [ -f "${errorfile}" ]
 		then
 			echo "***! Found errorfile. Exiting."
@@ -1242,6 +1339,7 @@ then
 		fi
 
 		${load_samtools}
+
 		if ! samtools merge -c -t cb -n $sthreadstring -O SAM $outputdir/merged_sort.sam  $splitdir/*.sam
 		then
 			echo "***! Some problems occurred somewhere in creating sorted align files."
@@ -1250,12 +1348,17 @@ then
 		else
 			echo "(-: Finished sorting all sorted files into a single merge."
 		fi
+
 		date
 EOF`
 
 	jid=$(echo $jid | egrep -o -e "\b[0-9]+$")
 	dependmrgsrt="afterok:$jid"
 fi
+
+
+
+
 
 # Remove the duplicates from the big sorted file
 if [ -z $final ] && [ -z $postproc ] && [ -z $afterdedup ]
@@ -1266,6 +1369,7 @@ then
 	else
 		sbatch_wait=""
 	fi
+
 	# Guard job for dedup. this job is a placeholder to hold any job submitted after dedup.
 	# We keep the ID of this guard, so we can later alter dependencies of inner dedupping phase.
 	# After dedup is done, this job will be released.
@@ -1282,6 +1386,7 @@ then
 		#SBATCH -J "${groupname}_dedup_guard"
 		${sbatch_wait}
 			$userstring
+
 		$debugString
 
 		date
@@ -1290,6 +1395,8 @@ DEDUPGUARD`
 	dependguard="afterok:$guardjid"
 
 	# if jobs succeeded, kill the cleanup job, remove the duplicates from the big sorted file
+
+
 	echo "SUBMITTING DEDUP"
 	jid=`sbatch <<- DEDUP | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
@@ -1303,15 +1410,14 @@ DEDUPGUARD`
 		#SBATCH -J "${groupname}_dedup"
 		${sbatch_wait}
 			$userstring
+
 		$debugString
 
 		${load_awk}
+
 		date
-			if [ -f "${errorfile}" ]
-			then
-				echo "***! Found errorfile. Exiting."
-				exit 1
-			fi
+
+
 		squeue -u $USER -o "%A %T %j %E %R" | column -t
 		awk -v queue=$long_queue -v groupname=$groupname -v debugdir=$debugdir -v dir=$outputdir -v topDir=$topDir -v juicedir=$juiceDir -v site=$site -v genomeID=$genomeID -v genomePath=$genomePath -v user=$USER -v guardjid=$guardjid -v justexact=$justexact -v wobbleDist=$wobbleDist -f $juiceDir/scripts/split_rmdups_sam.awk $outputdir/merged_sort.sam
 
@@ -1319,6 +1425,7 @@ DEDUPGUARD`
 		##Push guard to run after last dedup is completed:
 		##srun --ntasks=1 -c 1 -p "$queue" -t 1 -o ${debugdir}/dedup_requeue-%j.out -e ${debugdir}/dedup-requeue-%j.err -J "$groupname_msplit0" -d singleton echo ID: $ echo "\${!SLURM_JOB_ID}"; scontrol update JobID=$guardjid dependency=afterok:\$SLURM_JOB_ID
 		squeue -u $USER -o "%A %T %j %E %R" | column -t
+
 		date
 
 		scontrol release $guardjid
@@ -1327,7 +1434,10 @@ DEDUP`
 	dependosplit="afterok:$jid"
 
 	#Push dedup guard to run only after dedup is complete:
-	scontrol update JobID=$guardjid dependency=afterok:$jid
+
+
+
+
 
 	#Wait for all parts of split_rmdups to complete:
 	echo "SUBMITTING POST_DEDUP"
@@ -1357,11 +1467,19 @@ else
 	sbatch_wait=""
 fi
 
+
+
+
+
 if [ -z "$genomePath" ]
 then
 	#If no path to genome is give, use genome ID as default.
 	genomePath=$genomeID
 fi
+
+
+
+
 
 #Skip if only final or post-processing only is required
 if [ -z $postproc ] && [ -z $final ]
@@ -1382,13 +1500,16 @@ then
 		${sbatch_wait}
 			$userstring
 		$debugString
+
 		${load_awk}
+
 		date
 		wc -l ${outputdir}/merged_sort.sam |  awk '{printf("%s ", \\\$1)}' > $debugdir/dupcheck-${groupname}
 		wc -l ${outputdir}/merged_dedup.sam | awk '{printf("%s ", \\\$1)}' >> $debugdir/dupcheck-${groupname}
 		cat $debugdir/dupcheck-${groupname}
 		awk -v debugdir=$debugdir -v queue=$queue -v groupname=$groupname -v dir=$outputdir '$awkscript' $debugdir/dupcheck-${groupname}
 DUPCHECK`
+
 
 	echo "SUBMITTING MERGED1"
 	jid1=`sbatch <<- MERGED1 | egrep -o -e "\b[0-9]+$"
@@ -1401,12 +1522,19 @@ DUPCHECK`
 		#SBATCH --ntasks=1
 		#SBATCH --mem-per-cpu=10G
 			$userstring
+
 		$debugString
+
 		${load_samtools}
 
 		samtools view -F 1024 -O sam $sthreadstring ${outputdir}/merged_dedup.sam | awk -v mapq=1 -f ${juiceDir}/scripts/sam_to_pre.awk > ${outputdir}/merged1.txt
+
 		date
 MERGED1`
+
+
+
+
 
 	echo "SUBMITTING MERGED30"
 		#!/bin/bash -l
@@ -1424,11 +1552,16 @@ MERGED1`
 		${load_samtools}
 
 		samtools view -F 1024 -O sam $sthreadstring ${outputdir}/merged_dedup.sam | awk -v mapq=30 -f ${juiceDir}/scripts/sam_to_pre.awk > ${outputdir}/merged30.txt
+
 		date
 MERGED30`
 	sbatch_wait2="#SBATCH -d afterok:$jid2"
 
 	sbatch_wait0="#SBATCH -d afterok:$jid1:$jid2"
+
+
+
+
 
 	echo "SUBMITTING PRESTATS"
 		#!/bin/bash -l
@@ -1444,12 +1577,14 @@ MERGED30`
 			$userstring
 
 		${load_awk}
-			date
-			${load_java}
+		${load_java}
 		${load_samtools}
-			export IBM_JAVA_OPTIONS="-Xmx1024m -Xgcthreads1"
-			export _JAVA_OPTIONS="-Xmx1024m -Xms1024m"
-			tail -n1 $headfile | awk '{printf"%-1000s\n", \\\$0}' > $outputdir/inter.txt
+
+		date
+
+		export IBM_JAVA_OPTIONS="-Xmx1024m -Xgcthreads1"
+		export _JAVA_OPTIONS="-Xmx1024m -Xms1024m"
+		tail -n1 $headfile | awk '{printf"%-1000s\n", \\\$0}' > $outputdir/inter.txt
 
 		# count duplicates via samtools view -c
 		# for paired end, count only first in pair to avoid double counting
@@ -1471,6 +1606,7 @@ MERGED30`
 			fi
 			cat $splitdir/*.res.txt | awk -v fname=$outputdir/tmp -v ligation=$ligation -f ${juiceDir}/scripts/stats_sub.awk >> $outputdir/inter.txt
 		fi
+
 		cp $outputdir/inter.txt $outputdir/inter_30.txt
 
 		date
@@ -1478,6 +1614,7 @@ PRESTATS`
 	sbatch_wait000="${sbatch_wait1}:$jid"
 
 	echo "SUBMITTING BAMRM"
+	jid_bamrm=`sbatch <<- BAMRM  | egrep -o -e "\b[0-9]+$"
 		#!/bin/bash -l
 		#SBATCH -p $queue
 		#SBATCH -o $debugdir/%j-bamrm.out
