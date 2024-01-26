@@ -1102,6 +1102,7 @@ CNTLINE`
 				date
 MRGALL`
 
+			dependmerge="afterok:$jid"
 		else
 			if [ $singleend -eq 1 ]
 			then
@@ -1129,6 +1130,7 @@ MRGALL`
 					time awk -v stem=${name}${ext}_norm -v singleend=$singleend -f $juiceDir/scripts/chimeric_sam.awk $name$ext.sam > $name$ext.sam3
 MRGALL1`
 
+				dependmerge="afterok:$jid"
 			else
 				echo "SUBMITTING MERGE_NO_SITE_STEP_1"
 				jid=`sbatch <<- MRGALL1 | egrep -o -e "\b[0-9]+$"
@@ -1153,8 +1155,8 @@ MRGALL1`
 					#will need to combine chimeric_sam and adjust_insert_size
 					time awk -v stem=${name}${ext}_norm -f $juiceDir/scripts/chimeric_sam.awk $name$ext.sam > $name$ext.sam2
 MRGALL1`
-			dependalign="afterok:$jid"
 
+				dependmerge1="afterok:$jid"
 				echo "SUBMITTING MERGE_NO_SITE_STEP_2"
 				jid=`sbatch <<- MRGALL3 | egrep -o -e "\b[0-9]+$"
 					#!/bin/bash -l
@@ -1176,7 +1178,7 @@ MRGALL1`
 
 				time awk -v avgInsertFile=${name}${ext}_norm.txt.res.txt -f $juiceDir/scripts/adjust_insert_size.awk $name$ext.sam2 > $name$ext.sam3
 MRGALL3`
-			dependalign="afterok:$jid"
+				dependmerge="afterok:$jid"
 			fi
 		fi
 
@@ -1193,7 +1195,7 @@ MRGALL3`
 			#SBATCH -t $long_queue_time
 			#SBATCH -c $sortthreads
 			#SBATCH --ntasks=1
-			#SBATCH -d $dependalign
+			#SBATCH -d $dependmerge
 			#SBATCH -J "${groupname}_mergesort_${jname}"
 			#SBATCH --threads-per-core=1
 				$userstring
