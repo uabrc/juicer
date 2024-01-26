@@ -1445,6 +1445,11 @@ DEDUPGUARD`
 
 		date
 
+		if [ -f "${errorfile}" ]
+		then
+			echo "***! Found errorfile. Exiting."
+			exit 1
+		fi
 
 		squeue -u $USER -o "%A %T %j %E %R" | column -t
 		awk -v queue=$long_queue -v groupname=$groupname -v debugdir=$debugdir -v dir=$outputdir -v topDir=$topDir -v juicedir=$juiceDir -v site=$site -v genomeID=$genomeID -v genomePath=$genomePath -v user=$USER -v guardjid=$guardjid -v justexact=$justexact -v wobbleDist=$wobbleDist -f $juiceDir/scripts/split_rmdups_sam.awk $outputdir/merged_sort.sam
