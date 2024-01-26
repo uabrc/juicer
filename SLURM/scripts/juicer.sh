@@ -1418,7 +1418,7 @@ then
 		date
 DEDUPGUARD`
 
-	dependguard="afterok:$guardjid"
+	dedup_depend_guard="afterok:$guardjid"
 
 	# if jobs succeeded, kill the cleanup job, remove the duplicates from the big sorted file
 
@@ -1476,7 +1476,7 @@ DEDUP`
 		#SBATCH -c 1
 		#SBATCH --ntasks=1
 		#SBATCH -J "${groupname}_post_dedup"
-		#SBATCH -d ${dependguard}
+		#SBATCH -d ${dedup_depend_guard}
 			$userstring
 		$debugString
 
