@@ -1805,12 +1805,16 @@ then
 				#SBATCH --ntasks=1
 				#SBATCH -J "${groupname}_mnd"
 				${stats1_and_stats30_depend_sbatch_flag}
-				$debugString
 					$userstring
+
+				$debugString
+
 				${load_samtools}
+
 				date
 
 				samtools view $sthreadstring -O SAM -F 1024 $outputdir/merged_dedup.*am | awk -v mnd=1 -f ${juiceDir}/scripts/sam_to_pre.awk > ${outputdir}/merged_nodups.txt
+
 				date
 MND`
 			mnd_depend_sbatch_flag="#SBATCH -d afterok:$jid_mnd"
