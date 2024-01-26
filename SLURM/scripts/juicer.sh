@@ -747,9 +747,9 @@ then
 	## Split fastq files into smaller portions for parallelizing alignment
 	## Do this by creating a text script file for the job on STDIN and then
 	## sending it to the cluster
-	dependsplit="afterok"
 	if [ ! $splitdirexists ]
 	then
+		dependsplitstring="#SBATCH -d afterok"
 		echo "(-: Created $splitdir and $outputdir."
 		if [ -n "$splitme" ]
 		then
@@ -804,7 +804,7 @@ SPLITEND`
 SPLITEND`
 				fi
 
-				dependsplit="$dependsplit:$jid"
+				dependsplitstring="$dependsplitstring:$jid"
 				# if we split files, the splits are named .fastq
 				read1=${splitdir}"/*${read1str}*.fastq"
 			done
