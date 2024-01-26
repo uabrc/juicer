@@ -953,6 +953,7 @@ SPLITWAIT`
 				#SBATCH -o $debugdir/%j-count_ligation.out
 				#SBATCH -e $debugdir/%j-count_ligation.err
 				#SBATCH -J "${groupname}_${jname}_Count_Ligation"
+				#SBATCH -d $dependwait
 				#SBATCH --mem=5G
 					$userstring
 
