@@ -1885,22 +1885,22 @@ FINCLN1`
 		#SBATCH -J "${groupname}_hic"
 		${stats1_wait_depend_sbatch_flag}
 			$userstring
-			
+
 		$debugString
 
 		${load_java}
-		
+
 		export IBM_JAVA_OPTIONS="-Xmx150000m -Xgcthreads1"
 		export _JAVA_OPTIONS="-Xmx150000m -Xms150000m"
-		
+
 		date
-		
+
 		if [ -f "${errorfile}" ]
 		then
 			echo "***! Found errorfile. Exiting."
 			exit 1
 		fi
-		
+
 		mkdir ${outputdir}"/HIC_tmp"
 
 		# multithreaded and index doesn't exist yet
@@ -1912,7 +1912,7 @@ FINCLN1`
 		time ${juiceDir}/scripts/juicer_tools pre -n -s $outputdir/inter.txt -g $outputdir/inter_hists.m -q 1 $resstr $fragstr $threadHicString $outputdir/merged1.txt $outputdir/inter.hic $genomePath
 		time ${juiceDir}/scripts/juicer_tools addNorm $threadNormString ${outputdir}/inter.hic
 		rm -Rf ${outputdir}"/HIC_tmp"
-		
+
 		date
 HIC1`
 
