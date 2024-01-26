@@ -1498,9 +1498,9 @@ DEDUP`
 MSPLITWAIT`
 
 	dependmsplit="afterok:$jid"
-	sbatch_wait="#SBATCH -d $dependmsplit"
+	dedup_segment_depend_sbatch_flag="#SBATCH -d $dependmsplit"
 else
-	sbatch_wait=""
+	dedup_segment_depend_sbatch_flag=""
 fi
 
 
@@ -1533,8 +1533,9 @@ then
 		#SBATCH --ntasks=1
 		#SBATCH --mem-per-cpu=8G
 		#SBATCH -J "${groupname}_dupcheck"
-		${sbatch_wait}
-			$userstring
+		${dedup_segment_depend_sbatch_flag}
+			$userString
+
 		$debugString
 
 		${load_awk}
