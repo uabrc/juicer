@@ -841,14 +841,14 @@ SPLITEND`
 		# unzipped files will have .fastq extension, softlinked gz
 		testname=$(ls -lgG ${splitdir} | awk '$7~/fastq$/||$7~/gz$/{print $7; exit}')
 
-	if [[ -z "$chimeric" ]]
-	then
-		if [[ ${testname: -3} == ".gz" ]]
+		if [[ -z "$chimeric" ]]
 		then
-			read1=${splitdir}"/*${read1str}*.fastq.gz"
-		else
-			read1=${splitdir}"/*${read1str}*.fastq"
-		fi
+			if [[ ${testname: -3} == ".gz" ]]
+			then
+				read1=${splitdir}"/*${read1str}*.fastq.gz"
+			else
+				read1=${splitdir}"/*${read1str}*.fastq"
+			fi
 		fi
 
 		dependsplitstring=""
