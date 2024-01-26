@@ -1222,7 +1222,7 @@ MRGALL2`
 
 		dependmergesort="${dependmergesort}:${jid_mergesort}"
 		ARRAY[countjobs]="${groupname}_mergesort_${jname}"
-		JIDS[countjobs]="${jid}"
+		JIDS[countjobs]="${jid_mergesort}"
 		TOUCH[countjobs]="$touchfile"
 		countjobs=$(( $countjobs + 1 ))
 	done # done looping over all fastq split files
