@@ -1187,6 +1187,7 @@ MRGALL3`
 
 
 		echo "SUBMITTING MERGESORT"
+		jid_mergesort=`sbatch <<- MRGALL2 | egrep -o -e "\b[0-9]+$"
 			#!/bin/bash -l
 			#SBATCH -p $long_queue
 			#SBATCH -o $debugdir/%j-mergesort.out
@@ -1215,6 +1216,7 @@ MRGALL3`
 				touch $errorfile
 				exit 1
 			fi
+MRGALL2`
 
 		dependmergesort="${dependmergesort}:${jid_mergesort}"
 		ARRAY[countjobs]="${groupname}_mergesort_${jname}"
