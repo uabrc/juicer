@@ -1596,6 +1596,8 @@ MERGED1`
 
 		${load_samtools}
 
+		date
+
 		samtools view -F 1024 -O sam $sthreadstring ${outputdir}/merged_dedup.sam | awk -v mapq=30 -f ${juiceDir}/scripts/sam_to_pre.awk > ${outputdir}/merged30.txt
 
 		date
