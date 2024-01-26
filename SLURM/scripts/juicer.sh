@@ -80,6 +80,9 @@ juicer_version="2.0"
 ## ! WW: Formatted with tabs to ensure HEREDOCS `<<-` work as expected.
 
 
+
+
+
 # Aiden Lab specific check
 isRice=$(host $(hostname) | awk 'NR==1{if ($1~/rice/) {print 1} else {print 0}; exit}') #'
 isBCM=$(host $(hostname) | awk 'NR==1{if ($1~/bcm/) {print 1} else {print 0}; exit}') #'
@@ -93,6 +96,8 @@ isCheaha=1
 
 # defaults for set -u
 isNots=""
+
+
 
 
 
@@ -153,7 +158,6 @@ then
 	threads=8
 	sortthreads=6
 
-
 	# FOR METHYLATION ONLY, NOT NEEDED AT THIS TIME
 	# empty for set -u
 	call_bwameth=""
@@ -179,6 +183,10 @@ else
 	long_queue="long"
 	long_queue_time="7200"
 fi
+
+
+
+
 
 # size to split fastqs. adjust to match your needs. 4000000=1M reads per split
 # can also be changed via the -C flag
@@ -219,6 +227,10 @@ singleend=0
 sampleName="HiC_sample"
 # library name for RG tag
 libraryName="HiC_library"
+
+
+
+
 
 ## Read arguments
 usageHelp="Usage: ${0##*/} [-g genomeID] [-d topDir] [-q queue] [-l long queue] [-s site]\n                 [-a about] [-S stage] [-p chrom.sizes path] [-C chunk size]\n                 [-y restriction site file] [-z reference genome file]\n                 [-D Juicer scripts parent dir] [-Q queue time limit]\n                 [-L long queue time limit] [-b ligation] [-t threads]\n                 [-T threadsHic] [-A account] [-i sample] [-k library] [-w wobble]\n                 [-e] [-h] [-f] [-j] [-u] [-m] [--assembly] [--cleanup] [--qc_apa] [--qc] [--in-situ]"
@@ -292,6 +304,10 @@ printHelpAndExit() {
 	exit "$1"
 }
 
+
+
+
+
 # defaults for set -u
 genomeID=""
 site_file=""
@@ -347,6 +363,10 @@ while getopts "d:g:a:hq:s:p:l:y:z:S:C:D:Q:L:b:A:i:t:jfuec-:T:w:k:m" opt; do
 	esac
 done
 
+
+
+
+
 # defaults for set -u
 chimeric=""
 merge=""
@@ -371,6 +391,10 @@ then
 		exit 1
 	esac
 fi
+
+
+
+
 
 ## Set reference sequence based on genome ID
 if [ -z "$refSeq" ]
@@ -400,6 +424,10 @@ else
 	fi
 fi
 
+
+
+
+
 ## Alignment checks; not necessary if later stages
 if [[ -z "$chimeric" && -z "$merge" &&  -z "$final" && -z "$dedup" && -z "$postproc" && -z "$afterdedup" ]]
 then
@@ -417,6 +445,10 @@ then
 		exit 1;
 	fi
 fi
+
+
+
+
 
 ## Set ligation junction based on restriction enzyme
 if [ -z "$ligation" ]; then
@@ -460,10 +492,18 @@ if [ -z "$ligation" ]; then
 	esac
 fi
 
+
+
+
+
 if [ "$methylation" = 1 ]
 then
 	ligation=$(echo $ligation | awk '{printf "'\''%s'\'' ", gensub("C","[CT]",$0)}')
 fi
+
+
+
+
 
 ## If DNAse-type experiment, no fragment maps; or way to get around site file
 if [[ "$site" == "none" ]]
@@ -476,6 +516,10 @@ then
 	site_file="${juiceDir}/restriction_sites/${genomeID}_${site}.txt"
 fi
 
+
+
+
+
 ## Check that site file exists, needed for fragment number for merged_nodups
 if [[ ! -e "$site_file" ]] && [[ "$site" != "none" ]] &&  [[ ! "$site_file" =~ "none" ]]
 then
@@ -485,6 +529,10 @@ elif [[ "$site" != "none" ]] && [[ ! "$site_file" =~ "none" ]]
 then
 	echo  "Using $site_file as site file"
 fi
+
+
+
+
 
 ## Set threads for sending appropriate parameters to cluster and string for BWA call
 # if [ -z "$threads" ]
@@ -549,6 +597,10 @@ outputdir=${topDir}"/aligned"
 tmpdir=${topDir}"/HIC_tmp"
 debugdir=${topDir}"/debug"
 
+
+
+
+
 if [ -z "$threadsHic" ]
 then
 	threadsHic=1
@@ -560,6 +612,10 @@ else
 	threadHic30String="--threads $threadsHic -i ${outputdir}/merged30_index.txt -t ${outputdir}/HIC30_tmp"
 	threadNormString="--threads $threadsHic"
 fi
+
+
+
+
 
 ## Alignment checks; not necessary if later stages
 if [[ -z "$chimeric" && -z "$merge" &&  -z "$final" && -z "$dedup" && -z "$afterdedup" && -z "$postproc" ]]
@@ -598,6 +654,10 @@ then
 	read1="${splitdir}/*.sam"
 fi
 
+
+
+
+
 ## Create split directory
 splitdirexists=""
 if [ -d "$splitdir" ]; then
@@ -608,6 +668,9 @@ elif  [[ -n "$chimeric" ]]; then
 else
 	mkdir "$splitdir" || { echo "***! Unable to create ${splitdir}, check permissions." ; exit 1; }
 fi
+
+
+
 
 
 ## Create output directory, only if not in postproc, dedup or final stages
@@ -622,17 +685,29 @@ else
 	fi
 fi
 
+
+
+
+
 ## Create temporary directory, used for sort later
 if [ ! -d "$tmpdir" ] && [ -z "$final" ] && [ -z "$dedup" ] && [ -z "$postproc" ] && [ -z "$afterdedup" ] ; then
 	mkdir "$tmpdir"
 	chmod 777 "$tmpdir"
 fi
 
+
+
+
+
 ## Create output directory, used for reporting commands output
 if [ ! -d "$debugdir" ]; then
 	mkdir "$debugdir"
 	chmod 777 "$debugdir"
 fi
+
+
+
+
 
 ## Arguments have been checked and directories created. Now begins
 ## the real work of the pipeline
@@ -655,6 +730,10 @@ then
 else
 	userstring="#SBATCH -A $user"
 fi
+
+
+
+
 
 # Add header containing command executed and timestamp
 if [ "$methylation" = 1 ]
@@ -721,6 +800,10 @@ jid=`sbatch <<- HEADER | egrep -o -e "\b[0-9]+$"
 
 	cp ${debugdir}/\\\$SLURM_JOB_ID-head.out ${headfile}
 HEADER`
+
+
+
+
 
 ## Record if we failed while aligning, so we don't waste time on other jobs
 ## Remove file if we're relaunching Juicer
@@ -887,6 +970,10 @@ SPLITWAIT`
 
 	dependsplitwait="afterok:$jid"
 	wait
+
+
+
+
 
 	## Launch job. Once split/move is done, set the parameters for the launch.
 	echo "(-: Starting job to launch other jobs once splitting is complete"
@@ -1178,6 +1265,7 @@ MRGALL1`
 
 					time awk -v avgInsertFile=${name}${ext}_norm.txt.res.txt -f $juiceDir/scripts/adjust_insert_size.awk $name$ext.sam2 > $name$ext.sam3
 MRGALL3`
+
 				dependmerge="afterok:$jid"
 			fi
 		fi
@@ -1200,6 +1288,7 @@ MRGALL3`
 			#SBATCH -J "${groupname}_mergesort_${jname}"
 			#SBATCH --threads-per-core=1
 				$userstring
+
 			$debugString
 
 			${load_samtools}
@@ -1319,7 +1408,6 @@ then
 	fi
 
 	# merge the sorted files into one giant file that is also sorted. jid=`sbatch <<- MRGSRT | egrep -o -e "\b[0-9]+$"
-
 	if [ $isVoltron -eq 1 ]
 	then
 		sbatch_time="#SBATCH -t 10080"
@@ -1420,6 +1508,10 @@ DEDUPGUARD`
 
 	dedup_depend_guard="afterok:$guardjid"
 
+
+
+
+
 	# if jobs succeeded, kill the cleanup job, remove the duplicates from the big sorted file
 
 	# needed for set -u, otherwise unbound
@@ -1488,12 +1580,15 @@ DEDUP`
 		#SBATCH -J "${groupname}_post_dedup"
 		#SBATCH -d ${dedup_depend_guard}
 			$userstring
+
 		$debugString
 
 		date
+
 		rm -Rf $tmpdir;
 		find $debugdir -type f -size 0 | xargs rm
 		squeue -u $USER -o "%A %T %j %E %R" | column -t
+
 		date
 MSPLITWAIT`
 
@@ -1622,8 +1717,9 @@ MERGED30`
 		#SBATCH --mem-per-cpu=1G
 		#SBATCH -J "${groupname}_prestats"
 		${dupcheck_depend_sbatch_flag}
-		$debugString
 			$userstring
+
+		$debugString
 
 		${load_awk}
 		${load_java}
@@ -1681,9 +1777,12 @@ PRESTATS`
 		#SBATCH --mem-per-cpu=10G
 		#SBATCH -J "${groupname}_bamrm"
 		${merged_1_and_30_depend_sbatch_flag}
-		$debugString
 			$userstring
+
+		$debugString
+
 		${load_samtools}
+
 		if samtools view -b $sthreadstring ${outputdir}/merged_dedup.sam > ${outputdir}/merged_dedup.bam
 		then
 			rm ${outputdir}/merged_dedup.sam
@@ -1706,9 +1805,12 @@ BAMRM`
 			#SBATCH --mem-per-cpu=10G
 			#SBATCH -J "${groupname}_meth"
 			$bamrm_depend_sbatch_flag
-			$debugString
 				$userstring
+
+			$debugString
+
 			${load_samtools}
+
 			export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/gpfs0/home/neva/lib
 			samtools sort $sthreadstring ${outputdir}/merged_dedup.bam > ${outputdir}/merged_dedup_sort.bam
 			/gpfs0/home/neva/bin/MethylDackel extract -F 1024 --keepSingleton --keepDiscordant $refSeq ${outputdir}/merged_dedup_sort.bam
@@ -1730,21 +1832,25 @@ METH`
 		#SBATCH --mem=25G
 		#SBATCH -J "${groupname}_stats"
 		${merged1_and_prestats_depend_sbatch_flag}
-		$debugString
 			$userstring
 
+		$debugString
+
 		date
+
 		if [ -f "${errorfile}" ]
 		then
 			echo "***! Found errorfile. Exiting."
 			exit 1
 		fi
+
 		if [ $assembly -eq 1 ]
 			then
 			${juiceDir}/scripts/juicer_tools statistics $site_file $outputdir/inter.txt $outputdir/merged1.txt none
 		else
 			${juiceDir}/scripts/juicer_tools statistics $site_file $outputdir/inter.txt $outputdir/merged1.txt $genomePath
 		fi
+
 		date
 STATS1`
 
