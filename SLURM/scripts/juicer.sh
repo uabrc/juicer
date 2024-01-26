@@ -1273,6 +1273,7 @@ MERGESORTWAIT`
 		msg="***! Error in job ${ARRAY[$i]}  Type squeue -j ${JIDS[$i]} to see what happened"
 
 		# check that alignment finished successfully
+		dependmergecheck="afterok"
 		echo "SUBMITTING ALIGNCHECK"
 		jid=`sbatch <<- EOF
 			#!/bin/bash -l
