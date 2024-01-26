@@ -1989,22 +1989,29 @@ then
 			#SBATCH --ntasks=1
 			#SBATCH -J "${groupname}_hiccups_wrap"
 			${hic1_and_hic30_wait_depend_sbatch_flag}
-			$debugString
 				$userstring
+
+			$debugString
 
 			${load_gpu}
 			echo "load: $load_gpu"
 			${load_java}
+
 			date
+
 			nvcc -V
-				if [ -f "${errorfile}" ]
-				then
-					echo "***! Found errorfile. Exiting."
-					exit 1
-				fi
+
+			if [ -f "${errorfile}" ]
+			then
+				echo "***! Found errorfile. Exiting."
+				exit 1
+			fi
+
 			${juiceDir}/scripts/juicer_hiccups.sh -j ${juiceDir}/scripts/juicer_tools -i $outputdir/inter_30.hic -m ${juiceDir}/references/motif -g $genomeID
+
 			date
 HICCUPS`
+
 		dependhiccups="afterok:$jid"
 	fi
 else
